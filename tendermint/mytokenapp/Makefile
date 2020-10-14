@@ -1,11 +1,14 @@
-all: cleanall init build
+all: cleanall init build_mytokenapp build_client
 
 
 init: cleanall
 	@tendermint init --home ./bin
 
-build: cleanbin
-	@go build -o ./bin/mytokenapp
+build_mytokenapp:
+	@go build -o ./bin/mytokenapp main.go
+
+build_client:
+	@go build -o ./bin/client client.go
 
 cleanbin:
 	@rm -rf ./bin/mytoken*

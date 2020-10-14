@@ -14,6 +14,9 @@ func init() {
 	codec.RegisterInterface((*crypto.PubKey)(nil), nil)
 	codec.RegisterConcrete(&secp256k1.PrivKeySecp256k1{}, "secp256k1/privkey", nil)
 	codec.RegisterConcrete(&secp256k1.PubKeySecp256k1{}, "secp256k1/pubkey", nil)
+	codec.RegisterInterface((*Payload)(nil), nil)
+	codec.RegisterConcrete( &ReleasePayload{} , "tx/release", nil )
+	codec.RegisterConcrete( &TransferPayload{} , "tx/transfer", nil )
 }
 
 

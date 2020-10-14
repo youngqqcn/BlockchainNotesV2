@@ -58,3 +58,14 @@ wscat -c ws://127.0.0.1:26657/websocket
 ```
 
 
+
+### V2
+
+super user 
+``` 
+user6, 
+private key: e1b0f79b20e4543e19dca67fa154746e09c63084ded8a4783861a7351dd69ec997eba1726b, 
+address : 365EA5222D2F08A8A1EBF992B0628B1459527400
+```
+
+

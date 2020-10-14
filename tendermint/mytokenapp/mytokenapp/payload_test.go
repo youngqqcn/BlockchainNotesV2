@@ -2,6 +2,7 @@ package mytokenapp
 
 import (
 	"encoding/json"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -13,13 +14,21 @@ func TestNewReleasePayload(t *testing.T) {
 
 	fromAddress := wallet.GetAddress("yqq")
 	toAddress := wallet.GetAddress("tmp")
-	r := NewReleasePayload( fromAddress, toAddress, 1000 )
+	r := NewReleasePayload( fromAddress, toAddress, 1000, 100, "hello" )
 	if r == nil {
 		t.Error("NewReleasePayload is error")
 		return
 	}
 
 	t.Logf("signer: %v", r.GetSigner())
+
+	//if "release" != r.GetType() {
+	//	t.Errorf("tx type error")
+	//	return
+	//}
+	require.Equal(t, r.GetType(), "release", "TransferPayload type error")
+
+
 	t.Logf("signBytes: %v", r.GetSignBytes())
 	t.Logf("type: %v", r.GetType())
 }
@@ -33,7 +42,7 @@ func TestNewTransferPayload(t *testing.T) {
 
 	fromAddress := wallet.GetAddress("yqq")
 	toAddress := wallet.GetAddress("tmp")
-	r := NewTransferPayload( fromAddress, toAddress, 1000 )
+	r := NewTransferPayload( fromAddress, toAddress, 1000 , 0, "hello")
 	if r == nil {
 		t.Error("NewReleasePayload is error")
 		return
@@ -50,10 +59,12 @@ func TestNewTransferPayload(t *testing.T) {
 		return
 	}
 
-	if r.GetType() != "transfer" {
-		t.Errorf("type error: %v", r.GetType())
-		return
-	}
+	//if r.GetType() != "transfer" {
+	//	t.Errorf("type error: %v", r.GetType())
+	//	return
+	//}
+
+	require.Equal(t, r.GetType(), "transfer", "TransferPayload type error")
 
 	t.Logf("type: %v", r.GetType())
 

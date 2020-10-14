@@ -3,6 +3,7 @@ package mytokenapp
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"math/rand"
 	"testing"
 	"time"
@@ -64,6 +65,26 @@ func TestLoadWalletFromFile(t *testing.T) {
 	}
 
 	t.Logf("LoadWalletFromFile successed")
+}
+
+
+func TestInitWallet(t *testing.T) {
+
+	//wallet := NewWallet()
+	//require.NotNil(t, wallet, "new wallet error " )
+	//
+	//wallet.GenNewPrivKey("superuser")
+	//wallet.Save("superuser.wallet")
+
+	nw := LoadWalletFromFile("superuser.wallet")
+	require.NotNil(t, nw, "load wallet from file failed")
+
+	//nw.GenNewPrivKey("yqq")
+	//require.Nil(t,  nw.Save("superuser.wallet"), "save wallet error" )
+
+	t.Log( nw.GetAddress("yqq") )
+
+
 }
 
 
