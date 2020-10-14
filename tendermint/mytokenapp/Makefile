@@ -15,3 +15,7 @@ cleanall:
 
 start:
 	@cd ./bin && ./mytokenapp
+
+
+unitest:
+	@cd mytokenapp && go test -v -count=1
