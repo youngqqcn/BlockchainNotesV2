@@ -18,7 +18,6 @@ func TestNewWallet(t *testing.T) {
 	t.Log("new NewWallet success")
 }
 
-
 func TestWallet_Save(t *testing.T) {
 
 	//t.Error("hellllllllllllllllllll")
@@ -42,7 +41,7 @@ func TestWallet_Save(t *testing.T) {
 		t.Logf("address : %v", wallet.GetAddress(label))
 	}
 
-	if err := wallet.Save("walletfile.dat") ; err != nil {
+	if err := wallet.Save("walletfile.dat"); err != nil {
 		t.Errorf("save wallet file failed: %v", err)
 		return
 	}
@@ -50,23 +49,20 @@ func TestWallet_Save(t *testing.T) {
 	t.Logf("save wallet file success")
 }
 
-
-
 func TestLoadWalletFromFile(t *testing.T) {
-	wallet  := LoadWalletFromFile("walletfile.dat")
+	wallet := LoadWalletFromFile("walletfile.dat")
 	if wallet == nil {
 		t.Error("load wallet file failed!")
 		return
 	}
 
-	for label, key  := range wallet.Keys {
-		t.Logf("label: %v, private key: %v, address : %v", label ,
-				hex.EncodeToString( key.Bytes()), key.PubKey().Address() )
+	for label, key := range wallet.Keys {
+		t.Logf("label: %v, private key: %v, address : %v", label,
+			hex.EncodeToString(key.Bytes()), key.PubKey().Address())
 	}
 
 	t.Logf("LoadWalletFromFile successed")
 }
-
 
 func TestInitWallet(t *testing.T) {
 
@@ -76,16 +72,12 @@ func TestInitWallet(t *testing.T) {
 	//wallet.GenNewPrivKey("superuser")
 	//wallet.Save("superuser.wallet")
 
-	nw := LoadWalletFromFile("superuser.wallet")
+	nw := LoadWalletFromFile("../bin/wallet.dat")
 	require.NotNil(t, nw, "load wallet from file failed")
 
 	//nw.GenNewPrivKey("yqq")
 	//require.Nil(t,  nw.Save("superuser.wallet"), "save wallet error" )
 
-	t.Log( nw.GetAddress("yqq") )
-
+	t.Log(nw.GetAddress("yqq"))
 
 }
-
-
-
