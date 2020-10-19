@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/libs/kv"
 	"strconv"
 	"strings"
@@ -40,6 +41,9 @@ func (app *MyTokenApp) Query(query abcitypes.RequestQuery) (resQuery abcitypes.R
 	resQuery.Code = 0
 	resQuery.Value = []byte(strconv.FormatInt(balance, 10))
 	resQuery.Log = fmt.Sprintf("%s balance is %d\n", string(query.Data), balance)
+
+	// 客户端如何使用proof进行验证?
+	resQuery.Proof = &merkle.Proof{Ops: []merkle.ProofOp{app.getProofOp(string(query.Data)).ProofOp()}}
 
 	return
 }
@@ -127,8 +131,8 @@ func (app *MyTokenApp) DeliverTx(tx abcitypes.RequestDeliverTx) abcitypes.Respon
 			{
 				Type: "release",
 				Attributes: []kv.Pair{
-					{Key: []byte("from"), Value: []byte(txp.FromAddress)},
-					{Key: []byte("to"), Value: []byte(txp.ToAddress)},
+					{Key: []byte("from"), Value: txp.FromAddress},
+					{Key: []byte("to"), Value: txp.ToAddress},
 					{Key: []byte("value"), Value: []byte(strconv.FormatInt(txp.Value, 10))},
 					{Key: []byte("memo"), Value: []byte(txp.Memo)},
 				},
@@ -144,7 +148,8 @@ func (app *MyTokenApp) EndBlock(block abcitypes.RequestEndBlock) abcitypes.Respo
 }
 
 func (app *MyTokenApp) Commit() abcitypes.ResponseCommit {
-	return abcitypes.ResponseCommit{}
+	merkleRoot := app.getRootHash() // merkle tree root hash
+	return abcitypes.ResponseCommit{Data: merkleRoot}
 }
 
 //var SUPER_USER string //= "365EA5222D2F08A8A1EBF992B0628B1459527400"

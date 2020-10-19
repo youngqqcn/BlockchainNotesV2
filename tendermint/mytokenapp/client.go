@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/libs/os"
 	"strings"
 
@@ -121,17 +122,26 @@ func main() {
 	queryBalanceCmd.Flags().StringP("walletfile", "w", "wallet.dat", " path of wallet file ")
 	queryBalanceCmd.Flags().StringP("label", "l", "yqq", "the account label to query")
 
-	//&cobra.Command{
-	//	Use: "queryBalance",
-	//	Run: func(cmd *cobra.Command, args []string) {
-	//		queryBalance()
-	//	},
-	//})
+	queryTxCmd := cobra.Command{
+		Use: "querytx",
+		Run: func(cmd *cobra.Command, args []string) {
+			txhash, _ := cmd.Flags().GetString("hash")
+			_, err := hex.DecodeString(txhash)
+			if len(txhash) > 0 && err == nil {
+				queryTx(txhash)
+				return
+			}
+			cmd.Help()
+			return
+		},
+	}
+	queryTxCmd.Flags().StringP("hash", "x", "", " tx hash")
 
 	rootCmd.AddCommand(&initWalletCmd)
 	rootCmd.AddCommand(&releaseCmd)
 	rootCmd.AddCommand(&transferCmd)
 	rootCmd.AddCommand(&queryBalanceCmd)
+	rootCmd.AddCommand(&queryTxCmd)
 	//
 	if err := rootCmd.Execute(); err != nil {
 		panic(err)
@@ -155,10 +165,28 @@ func initWallet(filepath string, labels []string) error {
 	return nw.Save(filepath)
 }
 
-//// 查询交易
-//func queryTx( txHash string  ) {
-//	cli.ABCIQuery( "" , []byte(txHash)  )
-//}
+// 查询交易
+func queryTx(txHash string) {
+
+	tx, err := hex.DecodeString(txHash)
+	if err != nil {
+		panic(err)
+	}
+
+	resultTx, err := cli.Tx(tx, true)
+	if err != nil {
+		panic(err)
+	}
+
+	// OK
+	// reference : /home/yqq/go/pkg/mod/github.com/orientwalt/tendermint@v90.0.7+incompatible/lite/proxy/query_test.go
+	key := resultTx.Tx.Hash()
+	keyHash := merkle.SimpleHashFromByteSlices([][]byte{key})
+
+	if err := resultTx.Proof.Validate(keyHash); err != nil {
+		panic(err)
+	}
+}
 
 // 查询余额
 func queryBalance(filepath, label string) {
@@ -166,6 +194,22 @@ func queryBalance(filepath, label string) {
 	address := wallet.GetAddress(label)
 
 	rsp, err := cli.ABCIQuery("", []byte(strings.ToUpper(hex.EncodeToString(address))))
+	if err != nil {
+		panic(err)
+	}
+
+	prt := merkle.DefaultProofRuntime()
+
+	ops, err := prt.DecodeProof(rsp.Response.Proof)
+	if err != nil {
+		panic(err)
+	}
+	//proofOps := rsp.Response.Proof.GetOps()
+	//ops.Verify(    )
+
+	fmt.Printf("%v\n", ops)
+
+	fmt.Printf("proof: %v\n", rsp.Response.Proof)
 	if err != nil {
 		panic(err)
 	}
