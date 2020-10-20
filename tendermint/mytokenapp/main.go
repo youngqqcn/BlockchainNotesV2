@@ -20,30 +20,28 @@ import (
 	"mytokenapp/mytokenapp"
 )
 
-var configFile string  // 配置文件路径
+var configFile string // 配置文件路径
 
 // 获取命令行参数，初始化 configFile
 func init() {
 	flag.StringVar(&configFile, "config", "config/config.toml", "Path to config.toml")
 }
 
-
-func main()  {
+func main() {
 
 	fmt.Println("starting node ")
 
-	app := mytokenapp.MyTokenApp {  Accounts: make(map[string]int64)}
+	app := mytokenapp.NewMyTokenApp()
 
 	flag.Parse()
 
-
-	node , err := newTendermint(&app, configFile)
+	node, err := newTendermint(app, configFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v", err)
 		os.Exit(2)
 	}
 
-	err =  node.Start()
+	err = node.Start()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v", err)
 		os.Exit(3)
@@ -55,10 +53,9 @@ func main()  {
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	<- c
+	<-c
 	os.Exit(0)
 }
-
 
 func newTendermint(app abcitypes.Application, configFile string) (*nm.Node, error) {
 	// read config
@@ -85,7 +82,7 @@ func newTendermint(app abcitypes.Application, configFile string) (*nm.Node, erro
 
 	// read private validator
 	pv := privval.LoadFilePV(
-		config.PrivValidatorKeyFile(),  // 用于签名共识消息
+		config.PrivValidatorKeyFile(), // 用于签名共识消息
 		config.PrivValidatorStateFile(),
 	)
 

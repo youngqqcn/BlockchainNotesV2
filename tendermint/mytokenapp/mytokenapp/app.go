@@ -1,10 +1,11 @@
 package mytokenapp
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/merkle"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/kv"
 	"strconv"
 	"strings"
@@ -15,7 +16,15 @@ var _ abcitypes.Application = (*MyTokenApp)(nil)
 type MyTokenApp struct {
 	//types.BaseApplication   // 组合? 继承?
 	//types.Application
-	Accounts map[string]int64 // 暂时不做持久化
+
+	abcitypes.BaseApplication
+	//Accounts map[string]int64 // 暂时不做持久化
+
+	store *Store // 基于 iavl
+}
+
+func NewMyTokenApp() *MyTokenApp {
+	return &MyTokenApp{store: NewStore()}
 }
 
 func (app *MyTokenApp) Info(info abcitypes.RequestInfo) abcitypes.ResponseInfo {
@@ -36,14 +45,27 @@ func (app *MyTokenApp) Query(query abcitypes.RequestQuery) (resQuery abcitypes.R
 	}
 
 	upStr := strings.ToUpper(string(query.Data))
-	balance := app.Accounts[upStr]
+	//balance := app.Accounts[upStr]
+	addr, err := hex.DecodeString(upStr)
+	if err != nil {
+		resQuery.Code = 1111
+		resQuery.Log = "invalid address"
+		return
+	}
+
+	balance, err := app.store.GetBalance(addr)
+	if err != nil {
+		resQuery.Code = 2
+		resQuery.Log = fmt.Sprintf("getbalance error: %v\n", err)
+		return
+	}
 
 	resQuery.Code = 0
 	resQuery.Value = []byte(strconv.FormatInt(balance, 10))
 	resQuery.Log = fmt.Sprintf("%s balance is %d\n", string(query.Data), balance)
 
 	// 客户端如何使用proof进行验证?
-	resQuery.Proof = &merkle.Proof{Ops: []merkle.ProofOp{app.getProofOp(string(query.Data)).ProofOp()}}
+	//resQuery.Proof = &merkle.Proof{Ops: []merkle.ProofOp{app.getProofOp(string(query.Data)).ProofOp()}}
 
 	return
 }
@@ -102,7 +124,7 @@ func (app *MyTokenApp) DeliverTx(tx abcitypes.RequestDeliverTx) abcitypes.Respon
 			return abcitypes.ResponseDeliverTx{Code: 4, Log: fmt.Sprintf("signature is not matched")}
 		}
 
-		if ok, err := app.transfer(txp.FromAddress.String(), txp.ToAddress.String(), txp.Value); !ok {
+		if ok, err := app.transfer(txp.FromAddress, txp.ToAddress, txp.Value); !ok {
 			return abcitypes.ResponseDeliverTx{Code: 3, Log: fmt.Sprintf("error:%v", err)}
 		}
 		events = []abcitypes.Event{
@@ -124,7 +146,7 @@ func (app *MyTokenApp) DeliverTx(tx abcitypes.RequestDeliverTx) abcitypes.Respon
 			return abcitypes.ResponseDeliverTx{Code: 4, Log: fmt.Sprintf("signature is not matched")}
 		}
 
-		if ok, err := app.release(txp.FromAddress.String(), txp.ToAddress.String(), txp.Value); !ok {
+		if ok, err := app.release(txp.FromAddress, txp.ToAddress, txp.Value); !ok {
 			return abcitypes.ResponseDeliverTx{Code: 3, Log: fmt.Sprintf("error:%v", err)}
 		}
 		events = []abcitypes.Event{
@@ -154,30 +176,49 @@ func (app *MyTokenApp) Commit() abcitypes.ResponseCommit {
 
 //var SUPER_USER string //= "365EA5222D2F08A8A1EBF992B0628B1459527400"
 
-func (app *MyTokenApp) release(owner, receiver string, value int64) (bool, error) {
+func (app *MyTokenApp) release(owner, receiver crypto.Address, value int64) (bool, error) {
 
 	wallet := LoadWalletFromFile("wallet.dat")
 	if wallet == nil {
 		panic("load wallet error")
 	}
 
-	if owner != wallet.GetAddress("superuser").String() {
+	if owner.String() != wallet.GetAddress("superuser").String() {
 		return false, errors.New("sender is not super user")
 	}
 
-	app.Accounts[receiver] += value
+	//app.Accounts[receiver] += value
+
+	balance, _ := app.store.GetBalance(receiver)
+	err := app.store.SetBalance(receiver, balance+value)
+	if err != nil {
+		return false, err
+	}
+
 	return true, nil
 }
 
-func (app *MyTokenApp) transfer(fromAddress, toAddress string, value int64) (bool, error) {
+func (app *MyTokenApp) transfer(fromAddress, toAddress crypto.Address, value int64) (bool, error) {
 
-	balance := app.Accounts[fromAddress]
+	//balance := app.Accounts[fromAddress]
+	balance, _ := app.store.GetBalance(fromAddress)
 	if balance < value {
 		return false, errors.New("balance is not enough")
 	}
 
-	app.Accounts[fromAddress] -= value //*(balance.Sub(&balance, &value))
-	app.Accounts[toAddress] += value
+	//app.Accounts[fromAddress] -= value //*(balance.Sub(&balance, &value))
+	err := app.store.SetBalance(fromAddress, balance-value)
+	if err != nil {
+		return false, err
+	}
+
+	toBalance, _ := app.store.GetBalance(fromAddress)
+	err = app.store.SetBalance(toAddress, toBalance+value)
+	if err != nil {
+		return false, err
+	}
+
+	//app.Accounts[toAddress] += value
 
 	return true, nil
 }

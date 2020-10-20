@@ -198,23 +198,6 @@ func queryBalance(filepath, label string) {
 		panic(err)
 	}
 
-	prt := merkle.DefaultProofRuntime()
-
-	ops, err := prt.DecodeProof(rsp.Response.Proof)
-	if err != nil {
-		panic(err)
-	}
-	//proofOps := rsp.Response.Proof.GetOps()
-	//ops.Verify(    )
-
-	fmt.Printf("%v\n", ops)
-
-	fmt.Printf("proof: %v\n", rsp.Response.Proof)
-	if err != nil {
-		panic(err)
-	}
-	//d, err := json.Marshal(rsp)
-
 	fmt.Printf("%v balance : %+v\n", label, string(rsp.Response.Value))
 }
 

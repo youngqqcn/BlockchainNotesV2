@@ -4,17 +4,18 @@ import "github.com/tendermint/tendermint/crypto/merkle"
 
 func (app *MyTokenApp) balanceMapToByteMap() map[string][]byte {
 
-	//app.Accounts
-	newMap := make(map[string][]byte, len(app.Accounts))
-	for addr, balance := range app.Accounts {
-		balanceBytes, err := codec.MarshalBinaryBare(balance)
-		if err != nil {
-			panic(err)
-		}
-		newMap[addr] = balanceBytes
-	}
-
-	return newMap
+	////app.Accounts
+	//newMap := make(map[string][]byte, len(app.Accounts))
+	//for addr, balance := range app.Accounts {
+	//	balanceBytes, err := codec.MarshalBinaryBare(balance)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	newMap[addr] = balanceBytes
+	//}
+	//
+	//return newMap
+	return map[string][]byte{}
 }
 
 func (app *MyTokenApp) getRootHash() []byte {
