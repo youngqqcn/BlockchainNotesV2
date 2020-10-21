@@ -69,3 +69,15 @@ address : 365EA5222D2F08A8A1EBF992B0628B1459527400
 ```
 
 
+
+
+
+# 多节点
+
+按照教程的方式改, 一直报错, 需要修改每个节点的  config.toml 
+
+``` 
+allow_duplicate_ip = true
+addr_book_strict = false
+```
+

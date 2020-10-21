@@ -81,3 +81,20 @@ func TestInitWallet(t *testing.T) {
 	t.Log(nw.GetAddress("yqq"))
 
 }
+
+func TestWallet_GetAddress(t *testing.T) {
+
+	w := LoadWalletFromFile("../bin/wallet.dat")
+	require.NotNil(t, w, "load wallet from file failed")
+	yqqAddr := w.GetAddress("yqq")
+	tomAddr := w.GetAddress("tom")
+	superuser := w.GetAddress("superuser")
+
+	t.Log("yqq: ", yqqAddr)
+	t.Log("tom: ", tomAddr)
+	t.Log("superuser: ", superuser)
+
+	require.NotEqual(t, yqqAddr, tomAddr)
+	require.NotEqual(t, tomAddr, superuser)
+
+}

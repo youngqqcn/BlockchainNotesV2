@@ -6,7 +6,7 @@ import (
 )
 
 func TestStore(t *testing.T) {
-	store := NewStore()
+	store := NewStore("./")
 	err := store.SetBalance([]byte("address1"), 100)
 	require.NoError(t, err, "set error : %v\n", err)
 

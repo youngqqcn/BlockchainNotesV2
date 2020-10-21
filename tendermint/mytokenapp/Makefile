@@ -1,8 +1,8 @@
-all: cleanall init build_mytokenapp build_client
+all: cleanall build_mytokenapp build_client
 
 
-init: cleanall
-	@tendermint init --home ./bin
+init:
+	@cd ./bin && ./mytokenapp init --home . --trace
 
 build_mytokenapp:
 	@go build -o ./bin/mytokenapp main.go
@@ -20,7 +20,7 @@ cleanall:
 	-rm -rf ./bin/*
 
 start:
-	@cd ./bin && ./mytokenapp
+	@cd ./bin && ./mytokenapp 
 
 unitest:
 	@cd mytokenapp && go test -v -count=1

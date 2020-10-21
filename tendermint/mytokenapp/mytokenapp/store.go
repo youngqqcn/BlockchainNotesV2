@@ -12,9 +12,9 @@ type Store struct {
 	LastHash    []byte
 }
 
-func NewStore() *Store {
+func NewStore(dirPath string) *Store {
 
-	ldb, err := db.NewGoLevelDB("account", ".")
+	ldb, err := db.NewGoLevelDB("account", dirPath)
 	if err != nil {
 		panic(err)
 	}

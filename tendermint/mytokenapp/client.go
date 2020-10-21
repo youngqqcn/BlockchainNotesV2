@@ -168,24 +168,74 @@ func initWallet(filepath string, labels []string) error {
 // 查询交易
 func queryTx(txHash string) {
 
-	tx, err := hex.DecodeString(txHash)
+	txhash, err := hex.DecodeString(txHash)
 	if err != nil {
 		panic(err)
 	}
 
-	resultTx, err := cli.Tx(tx, true)
+	tx, err := cli.Tx(txhash, true)
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Printf("txhash: %v\n", hex.EncodeToString(tx.Hash))
+	fmt.Printf("height: %v\n", tx.Height)
+	//fmt.Printf("tx: %v\n", tx.Tx.String())
+
+	tx.Tx.String()
+
+	var trx myapp.Tx
+	//hexTx, _ := hex.DecodeString( tx.Tx.String())
+	err = myapp.UnMarshalBinaryBare(tx.Tx, &trx)
+	if err != nil {
+		panic(err)
+	}
+
+	//fmt.Println("from:", trx.Payload.(* (myapp.TransferPayload) ).FromAddress)
+
+	if _, ok := trx.Payload.(*myapp.ReleasePayload); ok {
+		p, _ := trx.Payload.(*myapp.ReleasePayload)
+		fmt.Println("from:", p.FromAddress)
+		fmt.Println("to:", p.ToAddress)
+		fmt.Println("value:", p.Value)
+		fmt.Println("sequence:", p.Sequence)
+		fmt.Println("memo:", p.Memo)
+	}
+	if _, ok := trx.Payload.(*myapp.TransferPayload); ok {
+		p, _ := trx.Payload.(*myapp.TransferPayload)
+		fmt.Println("from:", p.FromAddress)
+		fmt.Println("to:", p.ToAddress)
+		fmt.Println("value:", p.Value)
+		fmt.Println("sequence:", p.Sequence)
+		fmt.Println("memo:", p.Memo)
+	}
+
+	//
+	//jsonTx ,err := myapp.MarshalJSON(trx)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Println("======================")
+	//fmt.Println(jsonTx)
 
 	// OK
-	// reference : /home/yqq/go/pkg/mod/github.com/orientwalt/tendermint@v90.0.7+incompatible/lite/proxy/query_test.go
-	key := resultTx.Tx.Hash()
+	// 参考: /home/yqq/go/pkg/mod/github.com/orientwalt/tendermint@v90.0.7+incompatible/lite/proxy/query_test.go
+	// 第一种方式   Validate 内部调用了  Proof.Verify
+	key := tx.Tx.Hash()
 	keyHash := merkle.SimpleHashFromByteSlices([][]byte{key})
-
-	if err := resultTx.Proof.Validate(keyHash); err != nil {
+	if err := tx.Proof.Validate(keyHash); err != nil {
 		panic(err)
 	}
+
+	// 第二种方式
+	// 参考: /home/yqq/go/pkg/mod/github.com/tendermint/tendermint@v0.33.8/rpc/client/rpc_test.go
+	proof := tx.Proof
+	if err := proof.Proof.Verify(proof.RootHash, txhash); err != nil {
+		panic(err)
+	}
+
+	fmt.Println()
+
 }
 
 // 查询余额
@@ -198,7 +248,7 @@ func queryBalance(filepath, label string) {
 		panic(err)
 	}
 
-	fmt.Printf("%v balance : %+v\n", label, string(rsp.Response.Value))
+	fmt.Printf("label:%v , address:%v, balance : %+v\n", label, address.String(), string(rsp.Response.Value))
 }
 
 func transfer(filepath, fromLabel, toLabel string, value int64) {
@@ -216,12 +266,18 @@ func transfer(filepath, fromLabel, toLabel string, value int64) {
 		panic(err)
 	}
 
+	//fmt.Println("hex: ", hex.EncodeToString(bztx))
+
 	ret, err := cli.BroadcastTxCommit(bztx)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Printf("broadcast response : %v", ret)
+	fmt.Printf("hash: %v", ret.Hash)
+	fmt.Printf("height: %v", ret.Height)
+	fmt.Printf("tx: %v", ret.DeliverTx.String())
+
 }
 
 func release(filepath, toLabel string, value int64) {
@@ -244,4 +300,7 @@ func release(filepath, toLabel string, value int64) {
 	}
 
 	fmt.Printf("broadcast response : %v", ret)
+	fmt.Printf("hash: %v", ret.Hash)
+	fmt.Printf("height: %v", ret.Height)
+	fmt.Printf("tx: %v", ret.DeliverTx.String())
 }

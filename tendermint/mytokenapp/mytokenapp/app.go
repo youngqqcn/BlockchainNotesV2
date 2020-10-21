@@ -23,8 +23,8 @@ type MyTokenApp struct {
 	store *Store // 基于 iavl
 }
 
-func NewMyTokenApp() *MyTokenApp {
-	return &MyTokenApp{store: NewStore()}
+func NewMyTokenApp(accDbDirPath string) *MyTokenApp {
+	return &MyTokenApp{store: NewStore(accDbDirPath)}
 }
 
 func (app *MyTokenApp) Info(info abcitypes.RequestInfo) abcitypes.ResponseInfo {
@@ -171,6 +171,7 @@ func (app *MyTokenApp) EndBlock(block abcitypes.RequestEndBlock) abcitypes.Respo
 
 func (app *MyTokenApp) Commit() abcitypes.ResponseCommit {
 	merkleRoot := app.getRootHash() // merkle tree root hash
+	app.store.Commit()              // iavl
 	return abcitypes.ResponseCommit{Data: merkleRoot}
 }
 
@@ -212,7 +213,7 @@ func (app *MyTokenApp) transfer(fromAddress, toAddress crypto.Address, value int
 		return false, err
 	}
 
-	toBalance, _ := app.store.GetBalance(fromAddress)
+	toBalance, _ := app.store.GetBalance(toAddress)
 	err = app.store.SetBalance(toAddress, toBalance+value)
 	if err != nil {
 		return false, err

@@ -16,13 +16,12 @@ func NewReleasePayload(from, to crypto.Address, value, seq int64, memo string) *
 	return &ReleasePayload{CommanFeild{from, to, value, seq, memo}}
 }
 
-
 type CommanFeild struct {
-	FromAddress 	crypto.Address	// 所有者
-	ToAddress 		crypto.Address	// 目的地址
-	Value 			int64   			// 转账金额
-	Sequence 		int64				// 转账序号
-	Memo 			string			// 转账备注
+	FromAddress crypto.Address // 所有者
+	ToAddress   crypto.Address // 目的地址
+	Value       int64          // 转账金额
+	Sequence    int64          // 转账序号
+	Memo        string         // 转账备注
 }
 
 type ReleasePayload struct {
@@ -45,14 +44,10 @@ func (r ReleasePayload) GetType() string {
 	return "release"
 }
 
-
-
-
 func NewTransferPayload(from, to crypto.Address, value, seq int64, memo string) *TransferPayload {
 	//return &ReleasePayload{from, to, value}
 	return &TransferPayload{CommanFeild{from, to, value, seq, memo}}
 }
-
 
 type TransferPayload struct {
 	CommanFeild
@@ -74,9 +69,3 @@ func (t TransferPayload) GetType() string {
 	//panic("implement me")
 	return "transfer"
 }
-
-
-
-
-
-

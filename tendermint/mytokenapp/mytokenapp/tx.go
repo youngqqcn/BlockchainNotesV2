@@ -5,20 +5,17 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 )
 
-
 type Tx struct {
-	Payload 		Payload				// 交易内容
-	Signature 		[]byte				// 签名
-	PubKey			crypto.PubKey	// 公钥
+	Payload   Payload       // 交易内容
+	Signature []byte        // 签名
+	PubKey    crypto.PubKey // 公钥
 }
 
-
-func NewTx(payload Payload) *Tx  {
+func NewTx(payload Payload) *Tx {
 	return &Tx{Payload: payload}
 }
 
-
-func (tx *Tx)Sign(privKey crypto.PrivKey) error{
+func (tx *Tx) Sign(privKey crypto.PrivKey) error {
 
 	data := tx.Payload.GetSignBytes()
 
@@ -33,7 +30,7 @@ func (tx *Tx)Sign(privKey crypto.PrivKey) error{
 	return nil
 }
 
-func (tx *Tx)Verify() error {
+func (tx *Tx) Verify() error {
 	msg := tx.Payload.GetSignBytes()
 	sig := tx.Signature
 	if !tx.PubKey.VerifyBytes(msg, sig) {
@@ -42,8 +39,3 @@ func (tx *Tx)Verify() error {
 
 	return nil
 }
-
-
-
-
-

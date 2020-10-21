@@ -1,60 +1,92 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/spf13/viper"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/cmd/tendermint/commands"
 	cfg "github.com/tendermint/tendermint/config"
+	clix "github.com/tendermint/tendermint/libs/cli"
 	tmflags "github.com/tendermint/tendermint/libs/cli/flags"
 	"github.com/tendermint/tendermint/libs/log"
 	nm "github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/proxy"
-	"os"
-	"os/signal"
-	"path/filepath"
-	"syscall"
-
 	"mytokenapp/mytokenapp"
+	"os"
+	"path/filepath"
 )
 
 var configFile string // 配置文件路径
+var accountDbDirPath string
 
-// 获取命令行参数，初始化 configFile
-func init() {
-	flag.StringVar(&configFile, "config", "config/config.toml", "Path to config.toml")
-}
+//// 获取命令行参数，初始化 configFile
+//func init() {
+//	//flag.StringVar(&configFile, "config", "config/config.toml", "Path to config.toml")
+//	flag.StringVar(&accountDbDirPath, "accdb", ".", "Path to save accountdb")
+//}
 
 func main() {
 
+	//flag.Parse()
+	root := commands.RootCmd
+	root.AddCommand(commands.GenNodeKeyCmd)
+	root.AddCommand(commands.GenValidatorCmd)
+	root.AddCommand(commands.InitFilesCmd)
+	root.AddCommand(commands.ResetAllCmd)
+	root.AddCommand(commands.ShowNodeIDCmd)
+	root.AddCommand(commands.TestnetFilesCmd)
+
+	app := mytokenapp.NewMyTokenApp(".")
+	provider := makeNodeProvider(app)
+	root.AddCommand(commands.NewRunNodeCmd(provider))
+
 	fmt.Println("starting node ")
 
-	app := mytokenapp.NewMyTokenApp()
+	exec := clix.PrepareBaseCmd(root, "yqq", ".")
+	exec.Execute()
 
-	flag.Parse()
+	//
+	//node, err := newTendermint(app, configFile)
+	//if err != nil {
+	//	fmt.Fprintf(os.Stderr, "%v", err)
+	//	os.Exit(2)
+	//}
+	//
+	//err = node.Start()
+	//if err != nil {
+	//	fmt.Fprintf(os.Stderr, "%v", err)
+	//	os.Exit(3)
+	//}
+	//defer func() {
+	//	node.Stop()
+	//	node.Wait()
+	//}()
+	//
+	//c := make(chan os.Signal, 1)
+	//signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	//<-c
+	//os.Exit(0)
+}
 
-	node, err := newTendermint(app, configFile)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v", err)
-		os.Exit(2)
+func makeNodeProvider(app abcitypes.Application) nm.Provider {
+	return func(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
+		nodeKey, err := p2p.LoadOrGenNodeKey(config.NodeKeyFile())
+		if err != nil {
+			return nil, err
+		}
+
+		return nm.NewNode(config,
+			privval.LoadOrGenFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile()),
+			nodeKey,
+			proxy.NewLocalClientCreator(app),
+			nm.DefaultGenesisDocProviderFunc(config),
+			nm.DefaultDBProvider,
+			nm.DefaultMetricsProvider(config.Instrumentation),
+			logger,
+		)
 	}
-
-	err = node.Start()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v", err)
-		os.Exit(3)
-	}
-	defer func() {
-		node.Stop()
-		node.Wait()
-	}()
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	<-c
-	os.Exit(0)
 }
 
 func newTendermint(app abcitypes.Application, configFile string) (*nm.Node, error) {
