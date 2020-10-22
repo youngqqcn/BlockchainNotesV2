@@ -28,7 +28,6 @@ func NewStore(dirPath string) *Store {
 	if err != nil {
 		panic(err)
 	}
-
 	hash := tree.Hash()
 	return &Store{
 		tree:        tree,
@@ -80,4 +79,8 @@ func (store *Store) Commit() {
 	store.LastHash = hash
 	store.LastVersion = ver
 
+}
+
+func (store *Store) Hash() []byte {
+	return store.tree.Hash()
 }

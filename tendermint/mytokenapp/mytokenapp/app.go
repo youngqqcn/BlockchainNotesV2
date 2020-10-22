@@ -7,6 +7,8 @@ import (
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/kv"
+	"github.com/tendermint/tendermint/libs/log"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -20,15 +22,24 @@ type MyTokenApp struct {
 	abcitypes.BaseApplication
 	//Accounts map[string]int64 // 暂时不做持久化
 
-	store *Store // 基于 iavl
+	store  *Store // 基于 iavl
+	logger log.Logger
 }
 
 func NewMyTokenApp(accDbDirPath string) *MyTokenApp {
-	return &MyTokenApp{store: NewStore(accDbDirPath)}
+	return &MyTokenApp{store: NewStore(accDbDirPath), logger: log.NewTMLogger(os.Stdout)}
 }
 
 func (app *MyTokenApp) Info(info abcitypes.RequestInfo) abcitypes.ResponseInfo {
-	return abcitypes.ResponseInfo{Version: "v1.0.0yqq"}
+	// 获取app信息
+	// 解决节点重启的问题: 从高度0开始进行区块replay, 导致账户余额不正确
+	// https://github.com/tendermint/tendermint/issues/425#issuecomment-284207986
+	return abcitypes.ResponseInfo{
+		Version:          "v0.0.1",
+		Data:             "mytokenapp",
+		LastBlockAppHash: app.store.LastHash,
+		LastBlockHeight:  app.store.LastVersion,
+	}
 }
 
 func (app *MyTokenApp) SetOption(option abcitypes.RequestSetOption) abcitypes.ResponseSetOption {
@@ -170,14 +181,21 @@ func (app *MyTokenApp) EndBlock(block abcitypes.RequestEndBlock) abcitypes.Respo
 }
 
 func (app *MyTokenApp) Commit() abcitypes.ResponseCommit {
-	merkleRoot := app.getRootHash() // merkle tree root hash
-	app.store.Commit()              // iavl
-	return abcitypes.ResponseCommit{Data: merkleRoot}
+
+	//app.logger.Info ("==========================================================================")
+	//merkleRoot := app.getRootHash() // merkle tree root hash
+	app.store.Commit() // iavl
+	//app.logger.Info("version ==>:", app.store.LastVersion, "hash ==>",  hex.EncodeToString( app.store.LastHash  ))
+	fmt.Println("version ==>:", app.store.LastVersion, "hash ==>", hex.EncodeToString(app.store.Hash()))
+	return abcitypes.ResponseCommit{Data: app.store.Hash()}
 }
 
 //var SUPER_USER string //= "365EA5222D2F08A8A1EBF992B0628B1459527400"
 
 func (app *MyTokenApp) release(owner, receiver crypto.Address, value int64) (bool, error) {
+
+	app.logger.Info("release ", owner, " , ", receiver, " , ", value)
+	fmt.Println("release ", owner, " , ", receiver, " , ", value)
 
 	wallet := LoadWalletFromFile("wallet.dat")
 	if wallet == nil {
@@ -187,8 +205,6 @@ func (app *MyTokenApp) release(owner, receiver crypto.Address, value int64) (boo
 	if owner.String() != wallet.GetAddress("superuser").String() {
 		return false, errors.New("sender is not super user")
 	}
-
-	//app.Accounts[receiver] += value
 
 	balance, _ := app.store.GetBalance(receiver)
 	err := app.store.SetBalance(receiver, balance+value)
@@ -201,14 +217,15 @@ func (app *MyTokenApp) release(owner, receiver crypto.Address, value int64) (boo
 
 func (app *MyTokenApp) transfer(fromAddress, toAddress crypto.Address, value int64) (bool, error) {
 
-	//balance := app.Accounts[fromAddress]
-	balance, _ := app.store.GetBalance(fromAddress)
-	if balance < value {
+	app.logger.Info("transfer ", fromAddress, " , ", toAddress, " , ", value)
+	fmt.Println("transfer ", fromAddress, " , ", toAddress, " , ", value)
+
+	fromBalance, _ := app.store.GetBalance(fromAddress)
+	if fromBalance < value {
 		return false, errors.New("balance is not enough")
 	}
 
-	//app.Accounts[fromAddress] -= value //*(balance.Sub(&balance, &value))
-	err := app.store.SetBalance(fromAddress, balance-value)
+	err := app.store.SetBalance(fromAddress, fromBalance-value)
 	if err != nil {
 		return false, err
 	}
@@ -218,8 +235,6 @@ func (app *MyTokenApp) transfer(fromAddress, toAddress crypto.Address, value int
 	if err != nil {
 		return false, err
 	}
-
-	//app.Accounts[toAddress] += value
 
 	return true, nil
 }

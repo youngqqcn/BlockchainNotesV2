@@ -72,6 +72,7 @@ func main() {
 
 func makeNodeProvider(app abcitypes.Application) nm.Provider {
 	return func(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
+
 		nodeKey, err := p2p.LoadOrGenNodeKey(config.NodeKeyFile())
 		if err != nil {
 			return nil, err

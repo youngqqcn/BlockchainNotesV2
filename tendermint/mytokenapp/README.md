@@ -43,6 +43,9 @@ curl -s localhost:26657/tx?hash=0x381E1C108E1CFF75CD7BA4CECE4ACE91CA46745C1E73DB
 
 获取区块
 ```bash
+curl localhost:26657/block?height=12
+
+
 curl localhost:26657/blockchain?minHeight=1&maxHeight=2
 ```
 

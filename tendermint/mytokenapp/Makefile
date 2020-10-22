@@ -6,6 +6,17 @@ init:
 
 build_mytokenapp:
 	@go build -o ./bin/mytokenapp main.go
+	@cp ./bin/mytokenapp ./bin/n1/mytokenapp
+	@cp ./bin/mytokenapp ./bin/n2/mytokenapp
+	@cp ./bin/mytokenapp ./bin/n3/mytokenapp
+
+reset_all:
+	@rm -rf  bin/n1/account.db
+	@rm -rf  bin/n2/account.db
+	@rm -rf  bin/n3/account.db
+	@cd ./bin/n1 && ./mytokenapp unsafe_reset_all && cd ..
+	@cd ./bin/n2 && ./mytokenapp unsafe_reset_all && cd ..
+	@cd ./bin/n3 && ./mytokenapp unsafe_reset_all && cd ..
 
 build_client: clean_client
 	@go build -o ./bin/client client.go
@@ -20,7 +31,7 @@ cleanall:
 	-rm -rf ./bin/*
 
 start:
-	@cd ./bin && ./mytokenapp 
+	@cd ./bin && ./mytokenapp
 
 unitest:
 	@cd mytokenapp && go test -v -count=1
