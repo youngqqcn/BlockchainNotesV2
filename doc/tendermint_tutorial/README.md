@@ -13,11 +13,11 @@ ABCI是开发语言无关的，开发人员可以使用自己喜欢的任何语�
 
 阅读教程，从下面说法中选择正确的陈述：
 
-· tendermint只是一个共识引擎，没有完整实现区块链
+- tendermint只是一个共识引擎，没有完整实现区块链
 
-· 基于tendermint的应用只能用go语言开发
+- 基于tendermint的应用只能用go语言开发
 
-· ACBI是tendermint和应用之间的通信接口
+- ACBI是tendermint和应用之间的通信接口
 
  
 
@@ -38,11 +38,11 @@ tendermint共识机制的另一个特点就是其共识的最终确定性：一�
 
 阅读教程，从以下关于tendermint的共识算法的陈述中选择正确的说法：
 
-· tendermint采用了工作量证明机制（POW）
+- tendermint采用了工作量证明机制（POW）
 
-· 4个tendermint验证节点组成的区块链，当其中2个同时失效时，依然可以正常工作
+- 4个tendermint验证节点组成的区块链，当其中2个同时失效时，依然可以正常工作
 
-· tendermint区块链不会分叉
+- tendermint区块链不会分叉
 
  
 
@@ -51,15 +51,15 @@ tendermint的定位决定了在最终交付的节点软件分层中，应用程�
 
  ![](./tendermint_tutorial.files/tendermint_tutorial1672.png)
 
-在上图中，tendermint结构中的abci应用和以太坊结构中的智能合约，都是由用户代码实现的。 显然，ABCI应用大致与EVM+合约的组合相匹配。
+在上图中，tendermint结构中的abci应用和以太坊结构中的智能合约，都是由用户代码实现的。 显然，`ABCI`应用大致与EVM+合约的组合相匹配。
 
 在以太坊中，节点是一个整体，开发者提供的智能合约则运行在受限的虚拟机环境中；而在 tendermint中，并不存在虚拟机这一层，应用程序是一个标准的操作系统进程，不受任何 的限制与约束 —— 听起来这很危险，但当你考虑下使用tendermint的目的是构建专有的区块链 时，这种灵活性反而更有优势了。
 
-事实上，tendermint留下的应用层空间如此之大，以至于你完全可以在ABCI应用中实现一个 EVM，然后提供solidity合约开发能力，这就是超级账本的 Burrow 做的事情。
+事实上，tendermint留下的应用层空间如此之大，以至于你完全可以在`ABCI`应用中实现一个 EVM，然后提供solidity合约开发能力，这就是超级账本的 Burrow 做的事情。
 
 阅读教程，回答以下问题：
 
-· 你觉得tendermint的应用场景有哪些？
+- 你觉得tendermint的应用场景有哪些？
 
 ### 1.4 课程内容概述
 本课程适合希望开发自己的专有区块链的go语言工程师，课程内容如下：
@@ -96,6 +96,8 @@ merkle树是区块链中经常使用的一种数据结构，在这一章我们�
 
 本章介绍如何进行多个tendermint节点/应用旳组网。
 
+
+
 ## 2 初识tendermint
 
 ### 2.1 概述
@@ -111,69 +113,71 @@ tendermint提供了一个预构建的同名可执行程序，我们将学习如�
 
 阅读教程，从以下陈述中选择正确的说法：
 
-· tendermint程序启动后可以与其他节点通过p2p协议交换信息
+- tendermint程序启动后可以与其他节点通过p2p协议交换信息
 
-· tendermint程序和应用程序之间通过ABCI接口交换信息
+- tendermint程序和应用程序之间通过ABCI接口交换信息
 
-· curl可以通过tendermint程序的rpc接口查询应用状态
+- `curl`可以通过tendermint程序的rpc接口查询应用状态
 
  
 
 ### 2.2 节点初始化
-tendermint节点程序的行为非常依赖于配置文件，使用其init子命令 可以获得一组默认的初始化文件。 例如，在1#终端输入如下命令创建初始化文件：
+tendermint节点程序的行为非常依赖于配置文件，使用其`init`子命令 可以获得一组默认的初始化文件。 例如，在1#终端输入如下命令创建初始化文件：
 
-~$ tendermint init
+`~$ tendermint init`
 
-init子命令将在~/.tendermint目录下创建两个子目录data和config，分别用于 保存区块链数据和配置文件。
+`init`子命令将在`~/.tendermint`目录下创建两个子目录`data`和`config`，分别用于 保存区块链数据和配置文件。
 
-在data目录下将包含如下的数据文件，均为leveldb格式：
+在`data`目录下将包含如下的数据文件，均为`leveldb`格式：
 
-· blockstore.db：区块链数据库
+- `blockstore.db`：区块链数据库
 
-· evidence.db：节点行为数据
+- `evidence.db`：节点行为数据
 
-· state.db：区块链状态数据
+- `state.db`：区块链状态数据
 
-· tx_index.db：交易索引数据，
+- `tx_index.db`：交易索引数据，
 
-在config子目录下将包含如下的配置文件：
+在`config`子目录下将包含如下的配置文件：
 
-· config.toml：节点软件配置文件
+- `config.toml`：节点软件配置文件
 
-· node_key.json：节点密钥文件，用于p2p通信加密
+- `node_key.json`：节点密钥文件，用于p2p通信加密
 
-· priv_validator.json：验证节点密钥文件，用于共识签名
+- `priv_validator.json`：验证节点密钥文件，用于共识签名
 
-· genesis.json：创世文件
+- `genesis.json`：创世文件
 
-节点配置文件config.toml用来设置节点软件的运行参数，例如RPC监听端口等。 我们修改consensus.create_empty_blocks为false，即不出无交易的空块：
+节点配置文件config.toml用来设置节点软件的运行参数，例如RPC监听端口等。 我们修改`consensus.create_empty_blocks`为`false`，即不出无交易的空块：
 
+```
 [consensus]
-
 create_empty_blocks = false
+```
+
 
 重新初始化
 
 在我们开发ABCI应用的过程中，往往需要对应用中的状态结构等信息进行调整，再次重新启动 后就可能导致原有的链数据和新的状态结构不兼容，因此需要时不时地重新初始化区块链数据。
 
-当然你可以完全删除~/.tendermint目录，然后重新执行tendermint init命令。不过官方 的建议是使用unsafe_reset_all子命令来做这个事情，这个命令可以保留现有的配置而仅删除 数据文件。例如：
+当然你可以完全删除`~/.tendermint`目录，然后重新执行`tendermint init`命令。不过官方 的建议是使用`unsafe_reset_all`子命令来做这个事情，这个命令可以保留现有的配置而仅删除 数据文件。例如：
 
-~$ tendermint unsafe_reset_all
+`~$ tendermint unsafe_reset_all`
 
 参考教程，完成以下任务：
 
-· 执行init子命令初始化节点配置
+- 执行init子命令初始化节点配置
 
-· 修改config.toml中的参数，使节点不主动构造无交易空块
+- 修改`config.toml`中的参数，使节点不主动构造无交易空块
 
  
 
 ### 2.3 节点启动与停止
-初始化之后，我们就可以启动节点了。在1#终端执行node子命令启动tendermint节点：
+初始化之后，我们就可以启动节点了。在1#终端执行`node`子命令启动tendermint节点：
 
-~$ tendermint node
+`~$ tendermint node`
 
-可以看到tendermint在反复尝试abci应用的默认监听地址tcp://127.0.0.1:26658：
+可以看到tendermint在反复尝试abci应用的默认监听地址`tcp://127.0.0.1:26658`：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial4207.png)
 
@@ -181,74 +185,56 @@ create_empty_blocks = false
 
 在目前这种状态下，如果需要退出tendermint的执行，可以切换到2#终端，使用pkill 命令终止其运行：
 
-~$ pkill -9 tendermint
+`~$ pkill -9 tendermint`
 
 参考教程，完成以下任务：
 
-· 启动节点，观察其尝试连接abci应用的行为
+- 启动节点，观察其尝试连接abci应用的行为
 
-· 终止节点运行
+- 终止节点运行
 
  
 
 ### 2.4 编写最小化应用
-tendermint开发包中已经包含了一个基本的ABCI应用实现类BaseApplication， 可以完成与tendermint节点旳基本交互：
+tendermint开发包中已经包含了一个基本的ABCI应用实现类`BaseApplication`， 可以完成与tendermint节点旳基本交互：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial4462.png)
 
-tendermint节点程序可以通过socket通信访问ABCI应用，因此我们使用abci/server 包的NewServer()函数创建一个SocketServer实例来启动这个应用。
+tendermint节点程序可以通过socket通信访问ABCI应用，因此我们使用`abci/server` 包的`NewServer()`函数创建一个`SocketServer`实例来启动这个应用。
 
-例如，下面的代码在tendermint尝试连接的默认端口26658启动abci应用：
+例如，下面的代码在tendermint尝试连接的默认端口`26658`启动`abci`应用：
 
 ```go
 package main
 
- 
-
 import (
-
   "fmt"
-
   "github.com/tendermint/tendermint/abci/types"
-
   "github.com/tendermint/tendermint/abci/server"
-
 )
 
- 
-
 func main(){
-
   app := types.NewBaseApplication()
-
   svr,err := server.NewServer(":26658","socket",app)
-
   if err != nil { panic(err) }
-
   svr.Start()
-
   defer svr.Stop()
-
   fmt.Println("abci server started")
-
   select {}
-
 }
 ```
 
 
 
+将上述代码保存为`~/repo/go/src/diy/c2/mini-app.go`，然后在2#终端 进入c2目录并启动该应用：
 
+`~$ cd ~/repo/go/src/diy/c2`
 
-将上述代码保存为~/repo/go/src/diy/c2/mini-app.go，然后在2#终端 进入c2目录并启动该应用：
-
-~$ cd ~/repo/go/src/diy/c2
-
-~/repo/go/src/diy/c2$ go run mini-app.go
+`~/repo/go/src/diy/c2$ go run mini-app.go`
 
 现在回到1#终端重新启动tendermint节点：
 
-~$ tendermint node
+`~$ tendermint node`
 
 你可以看到这次tendermint节点启动成功了：
 
@@ -263,7 +249,7 @@ func main(){
 
 首先确保1#终端和2#终端分别运行着tendermint和abci应用，然后我们切换到3# 终端，输入如下命令提交交易0x68656c6c6f —— 对应于字符串hello的16进制表示：
 
-~$ curl http://localhost:26657/broadcast_tx_commit?tx=0x68656c6c6f
+`~$ curl http://localhost:26657/broadcast_tx_commit?tx=0x68656c6c6f`
 
 响应结果类似于下图，其中check_tx和deliver_tx来自于abci应用，而交易哈希 和区块高度则由tendermint节点内部处理得出：
 
@@ -273,7 +259,7 @@ func main(){
 
 让我们看一下这个区块的内容，在3#终端输入如下命令：
 
-~$ curl http://localhost:26657/block?height=2
+`~$ curl http://localhost:26657/block?height=2`
 
 注意结果中的Txs字段，它包含了该区块中所有交易的base64编码：
 
@@ -281,13 +267,13 @@ func main(){
 
 我们可以使用命令行工具base64简单地进行验证：
 
-~$ echo aGVsbG8= | base64 -d
+`~$ echo aGVsbG8= | base64 -d`
 
 可以访问这里 查看tendermint区块结构的详细说明。
 
 也可以通过哈希查看交易内容，在3#终端输入如下命令（注意，你的哈希可能与此不同）：
 
-~$ curl http://localhost:26657/tx?hash=0x2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C
+`~$ curl http://localhost:26657/tx?hash=0x2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C`
 
 得到如下的结果：
 
@@ -295,11 +281,11 @@ func main(){
 
 参考教程，在1#终端和2#终端分别启动tendermint节点和abci应用，然后在3#终端完成以下任务：
 
-· 提交一个交易，内容为：0x787878（对应于字符串xxx），观察其响应中的区块高度与交易哈希
+- 提交一个交易，内容为：0x787878（对应于字符串xxx），观察其响应中的区块高度与交易哈希
 
-· 查看该高度区块的内容，并解码其中的交易
+- 查看该高度区块的内容，并解码其中的交易
 
-· 利用该交易哈希查看其内容
+- 利用该交易哈希查看其内容
 
 ![](./tendermint_tutorial.files/tendermint_tutorial6209.png) 
 
@@ -309,11 +295,11 @@ func main(){
 
 参考教程，完成以下任务：
 
-· 在~/repo/go/src/diy/c2目录下创建mini-app.go文件，实现教程中的abci应用
+- 在`~/repo/go/src/diy/c2`目录下创建`mini-app.go`文件，实现教程中的abci应用
 
-· 在2#终端运行mini-app.go
+- 在`2#`终端运行`mini-app.go`
 
-· 在1#终端启动tendermint程序，观察输出日志，确认节点启动成功
+- 在`1#`终端启动tendermint程序，观察输出日志，确认节点启动成功
 
  
 
@@ -331,21 +317,21 @@ tendermint采用的分布式计算模型为状态机复制（State Machine Repli
 
 显然，计数器有无限个状态（1,2,3...），但只有三个触发动作：
 
-· inc - 递增
+- inc - 递增
 
-· dec - 递减 、
+- dec - 递减 、
 
-· reset - 复位
+- reset - 复位
 
 当涉及到区块链时，这些来自状态机外部的触发动作通常被称为交易/Transaction， 将被永久性地保存在区块链上，成为区块链不可篡改特性的一个基石。
 
 阅读教程，从以下陈述中选择正确的说法：
 
-· 计数器是一个确定性状态机
+- 计数器是一个确定性状态机
 
-· 状态机在没有外部触发时，状态不会变化
+- 状态机在没有外部触发时，状态不会变化
 
-· 多个输入的先后顺序，对状态机的状态变化没有影响
+- 多个输入的先后顺序，对状态机的状态变化没有影响
 
  
 
@@ -366,9 +352,9 @@ tendermint采用的分布式计算模型为状态机复制（State Machine Repli
 
 阅读教程，回答以下问题：
 
-· 在状态机复制模型中，共识算法达成的是输入次序的一致性，还是应用状态的一致性？
+- 在状态机复制模型中，共识算法达成的是输入次序的一致性，还是应用状态的一致性？
 
-· 为什么说只有确定性状态机才可以实现分布式共识？
+- 为什么说只有确定性状态机才可以实现分布式共识？
 
 ### 3.3 ABCI接口概述
 tendermint将ABCI协议交互过程进行了封装，开发者只需要实现Application接口，等待tendermint 在合适的时机调用就可以了：
@@ -377,51 +363,50 @@ tendermint将ABCI协议交互过程进行了封装，开发者只需要实现App
 
 上图列出了Application接口约定的方法，每个方法对应于一个特定的ABCI消息：
 
-Info：当tendermint与ABCI应用建立初始连接时，将发送Info请求消息尝试获取应用状态对应的区块 高度、状态哈希等信息，以确定是否需要重放（replay）区块交易。
+- **`Info`**：当tendermint与ABCI应用建立初始连接时，将发送Info请求消息尝试获取应用状态对应的区块 高度、状态哈希等信息，以确定是否需要重放（replay）区块交易。
 
-Query：当Rpc客户端发出abci_query调用时，tendermint将通过Query请求消息转发给ABCI应用，并 将响应结果转发回Rpc客户端。
+- **`Query`**：当Rpc客户端发出`abci_query`调用时，tendermint将通过`Query`请求消息转发给ABCI应用，并 将响应结果转发回Rpc客户端。
 
-CheckTx：当tendermint从Rpc接口或p2p端口收到新的交易时，首先会通过CheckTx请求消息提给ABCI应用 进行初步检查，确认该交易是否合规。只有ABCI应用确认有效的消息才会进入tendermint的交易 池等待下一步的共识确认。
+- **`CheckTx`**：当tendermint从Rpc接口或p2p端口收到新的交易时，首先会通过`CheckTx`请求消息提给ABCI应用 进行初步检查，确认该交易是否合规。只有ABCI应用确认有效的消息才会进入tendermint的交易 池等待下一步的共识确认。
 
-InitChain：当创建创世块时，tendermint会发送InitChain请求消息给ABCI应用，可以在此刻进行 应用状态机的状态初始化。
+- **`InitChain`**：当创建创世块时，tendermint会发送`InitChain`请求消息给`ABCI`应用，可以在此刻进行 应用状态机的状态初始化。
 
-BeginBlock/EndBlock：当tendermint就新区块交易达成共识后，将通过BeginBlock请求开始启动ABCI应用 的交易执行流程，并以EndBlock请求作为交易执行流程的结束。
+- **`BeginBlock/EndBlock`**：当tendermint就新区块交易达成共识后，将通过`BeginBlock`请求开始启动ABCI应用 的交易执行流程，并以`EndBlock`请求作为交易执行流程的结束。
 
-DeliverTx：在BeginBlock和EndBlock请求之间，tendermint会为区块中的每一个交易向ABCI应用 发出一个DeliverTx请求消息，这是应用状态机更新的时机。
+- **`DeliverTx`**：在`BeginBlock`和`EndBlock`请求之间，tendermint会为区块中的每一个交易向ABCI应用 发出一个`DeliverTx`请求消息，这是应用状态机更新的时机。
 
-Commit：作为执行交易的最后一步，tendermint会发送Commit请求，并在获取响应后持久化区块状态。
+- **`Commit`**：作为执行交易的最后一步，tendermint会发送`Commit`请求，并在获取响应后持久化区块状态。
 
 我们可以重写特定的接口方法来观察ABCI消息的执行，例如，下面的代码重写BeginBlock()方法来 打印BeginBlock请求消息：
 
 ```go
-type EzApp struct {   types.BaseApplication }
+type EzApp struct {   
+    types.BaseApplication 
+}
 
 func (app *EzApp) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock{
-
   fmt.Printf("beginblock => %v\n",req)
-
   return types.ResponseBeginBlock{}
-
 }
 ```
 
 
 
-在预置代码~/repo/go/src/hubwiz.com/c3/msg-dump.go中拦截并打印所有的ABCI消息，可以 按以下步骤运行来观察当一个交易提交后，ABCI应用收到的消息：
+在预置代码`~/repo/go/src/hubwiz.com/c3/msg-dump.go`中拦截并打印所有的ABCI消息，可以 按以下步骤运行来观察当一个交易提交后，ABCI应用收到的消息：
 
 首先在1#终端启动tendermint：
 
-~$ tendermint node
+`~$ tendermint node`
 
 然后在2#终端启动msg-dump.go：
 
-~$ cd ~/repo/go/src/hubwiz.com/c3
+`~$ cd ~/repo/go/src/hubwiz.com/c3`
 
-~/repo/go/src/hubwiz.com/c3$ go run msg-dump.go
+`~/repo/go/src/hubwiz.com/c3$ go run msg-dump.go`
 
 切换到3#终端执行命令：
 
-$ curl http://localhost:26657/broadcast_tx_commit?tx=0x787878
+`$ curl http://localhost:26657/broadcast_tx_commit?tx=0x787878`
 
 然后返回2#终端查看屏幕输出。
 
@@ -438,17 +423,14 @@ BeginBlock -> CheckTx -> DeliverTx -> EndBlock -> Commit
 
 例如，下面的代码检查交易是否为指定的三种交易之一（0x01 - inc，0x02 - dec ,0x03 - reset）， 否则拒绝：
 
+```go
 func (app *EzApp) CheckTx(tx []byte) types.ResponseCheckTx{
-
   if tx[0]  < 0x04 {
-
-return types.ResponseCheckTx{}
-
+  	return types.ResponseCheckTx{}
   }
-
   return types.ResponseCheckTx{Code:1,Log:"bad tx rejected"}
-
 }
+```
 
 CheckTx()方法返回的是一个ResponseCheckTx结构，其组成与ResponseDeliverTx 相同：
 
@@ -458,7 +440,7 @@ CheckTx()方法返回的是一个ResponseCheckTx结构，其组成与ResponseDel
 
 现在，当我们对修改过的ABCI应用试图提交如下的交易时，将发生错误：
 
-~$ curl http://localhost:26657/broadcast_tx_commit?tx=0x78
+`~$ curl http://localhost:26657/broadcast_tx_commit?tx=0x78`
 
 结果如下：
 
@@ -466,28 +448,28 @@ CheckTx()方法返回的是一个ResponseCheckTx结构，其组成与ResponseDel
 
 交易的唯一性要求
 
-为了对抗重放攻击，以及避免节点间反弹的重复消息引起共识过程死循环，tendermint在 触发CheckTx()之前会使用一个缓存拒绝近期已经出现过的交易。因此当你试图重复提交 一个交易时，将提示该交易已经存在的错误：tx already exists in cache。
+为了对抗重放攻击，以及避免节点间反弹的重复消息引起共识过程死循环，tendermint在 触发`CheckTx()`之前会使用一个缓存拒绝近期已经出现过的交易。因此当你试图重复提交 一个交易时，将提示该交易已经存在的错误：tx already exists in cache。
 
 解决的办法就是为交易附加一个序列号，以保证交易的唯一性。例如，当我们使用0x01表示 inc交易时，可以如下的方式多次提交交易：
 
-~$ curl http://localhost:26657/broadcast_tx_commit?tx=0x0101
+`~$ curl http://localhost:26657/broadcast_tx_commit?tx=0x0101`
 
-~$ curl http://localhost:26657/broadcast_tx_commit?tx=0x0102
+`~$ curl http://localhost:26657/broadcast_tx_commit?tx=0x0102`
 
-~$ curl http://localhost:26657/broadcast_tx_commit?tx=0x0103
+`~$ curl http://localhost:26657/broadcast_tx_commit?tx=0x0103`
 
 交易序列号的设计完全取决于特定的应用，tendermint只是简单地拒绝已经在缓存中的交易。
 
 参考教程，编写abci应用完成以下任务：
 
-· 使用CheckTx拦截所有第一个字节不是0x78的交易
+- 使用`CheckTx`拦截所有第一个字节不是0x78的交易
 
-· 运行tendermint和abci应用，然后使用curl提交若干可以通过检查的交易
+- 运行tendermint和abci应用，然后使用curl提交若干可以通过检查的交易
 
-· 注意交易唯一性的问题
+- 注意交易唯一性的问题
 
 ### 3.5 交易执行:DeliverTx
-计数器应用只有一个要维护的状态（计数值），因此第一版的实现很简单，我们 只需要在DeliverTx方法中检查交易类型，然后增减或复位成员变量Value即可：
+计数器应用只有一个要维护的状态（计数值），因此第一版的实现很简单，我们 只需要在`DeliverTx`方法中检查交易类型，然后增减或复位成员变量`Value`即可：
 
 ```go
 type CounterApp struct{
@@ -507,7 +489,7 @@ func (app *CounterApp) DeliverTx(tx []byte) types.ResponseDeliverTx{
 }
 ```
 
-DeliverTx()方法的返回结果是一个ResponseDeliverTx结构，其定义如下：
+`DeliverTx()`方法的返回结果是一个`ResponseDeliverTx`结构，其定义如下：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial10638.png) 
 
@@ -515,16 +497,16 @@ DeliverTx()方法的返回结果是一个ResponseDeliverTx结构，其定义如�
 
 参考教程与示例代码，编写abci应用完成以下任务：
 
-· 当提交0x01交易时，计数器值加1
+- 当提交0x01交易时，计数器值加1
 
-· 当提交0x02交易时，计数器值减1
+- 当提交0x02交易时，计数器值减1
 
-· 当提交0x03交易时，计数器值清零
+- 当提交0x03交易时，计数器值清零
 
-· 当提交非以上交易时，拒绝交易
+- 当提交非以上交易时，拒绝交易
 
 ### 3.6 状态初始化:InitChain
-当tendermint准备构建创始区块时，将向abci应用发送InitChain消息，同时在该消息 请求中可以携带创世文件genesis.json中应用特定的初始化状态数据（app_byte）， 因此是应用进行状态初始化的好时机：
+当tendermint准备构建创始区块时，将向abci应用发送`InitChain`消息，同时在该消息 请求中可以携带创世文件`genesis.json`中应用特定的初始化状态数据（app_byte）， 因此是应用进行状态初始化的好时机：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial10915.png) 
 
@@ -537,7 +519,7 @@ func (app *CounterApp) InitChain(req types.RequestInitChain) types.ResponseInitC
 }
 ```
 
-在上面的代码中我们直接在InitChain()实现中设定了技术初始值100，这当然是可以的，不过 更好的办法是借助于创世文件genesis.json，在该文件中声明应用状态的初始值。
+在上面的代码中我们直接在`InitChain()`实现中设定了技术初始值100，这当然是可以的，不过 更好的办法是借助于创世文件`genesis.json`，在该文件中声明应用状态的初始值。
 
 例如，下面展示了genesis.json中的内容：
 
@@ -554,7 +536,7 @@ func (app *CounterApp) InitChain(req types.RequestInitChain) types.ResponseInitC
 
 app_state字段的内容将以原始字节码的形式在InitChain请求的AppStateBytes字段传入， 因此，我们改为如下的实现：
 
-```json
+```go
 func (app *CounterApp) InitChain(req types.RequestInitChain) types.ResponseInitChain{
   var state map[string]int
   json.Unmarshal(req.AppStateBytes,&state)
@@ -565,12 +547,12 @@ func (app *CounterApp) InitChain(req types.RequestInitChain) types.ResponseInitC
 
 参考教程和示例代码，编写abci应用完成以下任务：
 
-· 在genesis.json中设置应用计数器初值为200
+- 在`genesis.json`中设置应用计数器初值为`200`
 
-· 重写InitChain()方法，使用genesis.json中的应用状态参数设置计数状态初值
+- 重写`InitChain()`方法，使用`genesis.json`中的应用状态参数设置计数状态初值
 
 ### 3.7 应用状态查询：Query
-RPC客户端可以利用节点旳abci_query调用查询ABCI应用维护的状态，该调用允许在请求 中设定查询条件，以过滤潜在的查询结果：
+RPC客户端可以利用节点旳`abci_query`调用查询ABCI应用维护的状态，该调用允许在请求 中设定查询条件，以过滤潜在的查询结果：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial11819.png)
 
@@ -583,36 +565,36 @@ func (app *CounterApp) Query(req types.RequestQuery) types.ResponseQuery{
 }
 ```
 
-Query()的参数是一个RequestQuery结构，用来指定查询条件，由于我们只有一个状态 值得返回，因此暂时先忽略它。
+`Query()`的参数是一个`RequestQuery`结构，用来指定查询条件，由于我们只有一个状态 值得返回，因此暂时先忽略它。
 
-Query()的返回结果是一个ResponseQuery结构，其定义如下：
+`Query()`的返回结果是一个`ResponseQuery`结构，其定义如下：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial12126.png)
 
-同样，结构中只有Code是必须的，为0值时表示交易执行成功，不同的非0值的失败含义由 应用自行定义即可。对于计数应用，我们使用Value字段来返回当前状态值。
+同样，结构中只有`Code`是必须的，为0值时表示交易执行成功，不同的非0值的失败含义由 应用自行定义即可。对于计数应用，我们使用`Value`字段来返回当前状态值。
 
-现在可以使用abci_query来查询应用状态了：
+现在可以使用`abci_query`来查询应用状态了：
 
-~$ curl http://localhost:26657/abci_query
+`~$ curl http://localhost:26657/abci_query`
 
-abci_query返回的value是base64编码的：
+`abci_query`返回的value是base64编码的：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial12306.png) 
 
 我们可以用base64解码value字段的值：
 
-~$ echo MQ== |  base64 -d
+`~$ echo MQ== |  base64 -d`
 
 参考教程和示例代码，编写abci应用完成以下任务：
 
-· 重写Query()方法，返回当前状态值
+- 重写`Query()`方法，返回当前状态值
 
-· 运行tendermint和abci应用，使用curl查看状态值
+- 运行tendermint和abci应用，使用curl查看状态值
 
  
 
 ### 3.8 应用状态的历史
-现在观察RequestQuery的结构，注意其Height字段：
+现在观察`RequestQuery`的结构，注意其Height字段：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial12478.png)
 
@@ -654,7 +636,7 @@ func (app *CounterApp) Query(req types.RequestQuery) types.ResponseQuery {
 
 我们现在可以查询历史状态了：
 
-~$ curl http://localhost:26657/abci_query?height=1
+`~$ curl http://localhost:26657/abci_query?height=1`
 
 结果如下：
 
@@ -662,13 +644,13 @@ func (app *CounterApp) Query(req types.RequestQuery) types.ResponseQuery {
 
 参考教程和示例代码，编写abci应用完成以下任务：
 
-· 实现对递增/递减/复位交易的支持
+- 实现对递增/递减/复位交易的支持
 
-· 记录每个区块高度时的状态历史
+- 记录每个区块高度时的状态历史
 
-· 实现按区块高度查询应用状态
+- 实现按区块高度查询应用状态
 
-· 启动tendermint和abci应用，用curl执行若干递增交易，并查询指定高度时的状态
+- 启动tendermint和abci应用，用curl执行若干递增交易，并查询指定高度时的状态
 
  
 
@@ -690,35 +672,36 @@ func (app *CounterApp) Query(req types.RequestQuery) types.ResponseQuery {
 容易理解，我们不期望每次重新启动节点（及ABCI应用）都重放所有区块，那会非常耗时 并且体验很差。因此我们可以在Info()方法中返回状态机处理过的最后区块高度，你知道 它对应于我们的Version成员：
 
 
-
+```go
 func (app *CounterApp) Info(req types.RequestInfo) types.ResponseInfo{
 
   return types.ResponseInfo{LastBlockHeight:app.Version}
 
 }
+```
 
-Info()的返回值是一个ResponseInfo结构，其成员如下：
+`Info()`的返回值是一个`ResponseInfo`结构，其成员如下：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial14133.png) 
 
 参考教程和示例代码，编写abci应用完成以下任务：
 
-· 实现递增/递减/复位交易的支持
+- 实现递增/递减/复位交易的支持
 
-· 重写Info()，在握手时向tendermint节点程序返回状态的最后区块高度
+- 重写`Info()`，在握手时向tendermint节点程序返回状态的最后区块高度
 
-· 启动tendermint和abci应用，提交若干递增交易
+- 启动tendermint和abci应用，提交若干递增交易
 
-· 重新启动tendermint，观察是否还存在重放信息
+- 重新启动tendermint，观察是否还存在重放信息
 
  
 
 ### 3.10 应用状态的哈希值
-根据tendermint的约定，ABCI应用在Commit()调用时返回当前状态的哈希，会由tendermint 写入下一个区块头中的app_hash部分，作为区块链状态的一部分：
+根据tendermint的约定，ABCI应用在`Commit()`调用时返回当前状态的哈希，会由tendermint 写入下一个区块头中的`app_hash`部分，作为区块链状态的一部分：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial14374.png) 
 
-apphash用来表示某个区块时的应用状态特征，哈希函数自然是一个很好的选择，但tendermint 只要求这个值能够表达状态，因此我们理论上可以使用任何与状态相关的确定性的值。例如， 对于计数应用而言，我们可以直接使用计数器的值，因为这个状态本身很简单，不需要提取指纹了。
+`apphash`用来表示某个区块时的应用状态特征，哈希函数自然是一个很好的选择，但tendermint 只要求这个值能够表达状态，因此我们理论上可以使用任何与状态相关的确定性的值。例如， 对于计数应用而言，我们可以直接使用计数器的值，因为这个状态本身很简单，不需要提取指纹了。
 
 ```go
 func (app *CounterApp) Commit() types.ResponseCommit{
@@ -729,7 +712,7 @@ func (app *CounterApp) Commit() types.ResponseCommit{
 }
 ```
 
-与此同时，在tendermint与abci应用握手时，如果涉及到区块重放，也会检查区块头记录的AppHash 与前一区块的Commit()返回的结果是否一致，因此，我们调整Info()来返回记录的当前状态的哈希：
+与此同时，在tendermint与abci应用握手时，如果涉及到区块重放，也会检查区块头记录的`AppHash` 与前一区块的`Commit()`返回的结果是否一致，因此，我们调整Info()来返回记录的当前状态的哈希：
 
 ```go
 func (app *CounterApp) Info(req types.RequestInfo) types.ResponseInfo{
@@ -739,14 +722,14 @@ func (app *CounterApp) Info(req types.RequestInfo) types.ResponseInfo{
 
 参考教程和示例代码，编写abci应用完成以下任务：
 
-· 将应用状态哈希写入区块
+- 将应用状态哈希写入区块
 
-· 在握手时返回最后状态的哈希
+- 在握手时返回最后状态的哈希
 
  
 
 ### 3.11 应用状态持久化
-到目前位置，我们的应用状态都是保存在内存里，每次重新启动都会从零开始。 现在考虑把状态持久化到硬盘上。这包括两部分工作：在Commit()中保存状态到硬盘、 在创建应用实例时载入硬盘保存的状态。
+到目前位置，我们的应用状态都是保存在内存里，每次重新启动都会从零开始。 现在考虑把状态持久化到硬盘上。这包括两部分工作：在`Commit()`中保存状态到硬盘、 在创建应用实例时载入硬盘保存的状态。
 
 理论上你可以使用任何存储机制，例如SQL数据库、NoSQL数据库、文件系统等等。 不过为了便于观察，我们采用JSON格式的平文件记录计数值：
 
@@ -781,13 +764,13 @@ func NewCounterApp() *CounterApp {
 
 参考教程和示例代码，编写abci应用完成以下任务：
 
-· 实现递增交易和查询支持
+- 实现递增交易和查询支持
 
-· 实现技术状态持久化
+- 实现技术状态持久化
 
-· 启动tendermint和abci应用，并执行若干递增交易，记录最后状态值
+- 启动tendermint和abci应用，并执行若干递增交易，记录最后状态值
 
-· 重新启动tendermint和abci应用，查询状态值
+- 重新启动tendermint和abci应用，查询状态值
 
  
 
@@ -809,9 +792,9 @@ tendermint提供了两种非对称加密算法的实现：比特币/以太坊采
 
 阅读教程，从以下陈述中选择正确的说法：
 
-· 区块链采用非对称密钥实现用户身份的表征与识别
+- 区块链采用非对称密钥实现用户身份的表征与识别
 
-· 区块链地址可以从公钥推算出来，不同的地址对应不同的公钥
+- 区块链地址可以从公钥推算出来，不同的地址对应不同的公钥
 
  
 
@@ -820,35 +803,44 @@ Secp256k1是指比特币中使用的ECDSA(椭圆曲线数字签名算法)曲线�
 
 在比特币流行之前secp256k1几乎无人使用，但现在已经是无人不知了。secp256k1的参数由于 是精心选择的，因此它的计算会比随机参数的曲线快30%，具有较短的密钥，同时也能显著降低 算法中存在后门的风险。
 
-tendermint内置了secp256k1的实现包crypto/secp256k1，其中的PrivKeySecp256k1和 PubKeySecp256k1分别实现了私钥和公钥接口：
+tendermint内置了`secp256k1`的实现包`crypto/secp256k1`，其中的`PrivKeySecp256k1`和 `PubKeySecp256k1`分别实现了私钥和公钥接口：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial16691.png)
 
-私钥对应于曲线上点的X坐标。使用secp256k1包的GenPrivKey()方法可以生成一个32 字节长的随机私钥，例如：
+私钥对应于曲线上点的X坐标。使用`secp256k1`包的`GenPrivKey()`方法可以生成一个32 字节长的随机私钥，例如：
 
+```go
 priv := secp256k1.GenPrivKey()
 
 fmt.Printf("private key => %v\n",priv)
+```
 
 或者将一个特定的密文转换为私钥，例如：
 
+```go
 priv := secp256k1.GenPrivKeySecp256k1([]byte("your secret byte slice"))
 
 fmt.Printf("private key => %v\n",priv)
+```
 
-公钥对应与曲线上点的Y坐标，因此从私钥可以推导出公钥，调用私钥的GetPubKey() 方法获得其对应的公钥实例：
+公钥对应与曲线上点的Y坐标，因此从私钥可以推导出公钥，调用私钥的`GetPubKey()` 方法获得其对应的公钥实例：
 
+```go
 pub := priv.GetPubKey()
 
 fmt.Printf("public key => %v\n",pub)
+```
 
 tendermint的实现是返回压缩公钥，因此公钥长度是32+1=33字节 —— 额外的1个字节标识Y 在上部还是下部。 地址的计算方法和比特币一样，都是对公钥进行两重哈希运算（sha256->ripemd160）， 最后得到20字节长的地址，但tendermint的地址没有像比特币那样添加网络前缀。
 
+
 调用公钥实例的Address()方法获取公钥对应的地址，例如：
 
+```go
 addr := pub.Address()
 
 fmt.Printf("address => %v\n",addr)
+```
 
 尽管secp256k1在区块链领域已经非常流行，但是它也有一些问题。
 
@@ -878,33 +870,41 @@ tendermint推荐的ed25519算法属于下一代的EdDSA签名算法，与secp256
 
 
 
-tendermint的ed25519实现包是crypto/ed25519，其中的PrivKeyEd25519和 PubKeyEd25519分别实现了私钥和公钥接口：
+tendermint的ed25519实现包是`crypto/ed25519`，其中的`PrivKeyEd25519`和 `PubKeyEd25519`分别实现了私钥和公钥接口：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial18025.png) 
 
 使用ed25519包的GenPrivKey()方法可以生成一个64字节长的随机私钥，例如：
 
+```go
 priv := ed25519.GenPrivKey()
 
 fmt.Printf("private key => %v\n",priv)
+```
 
 或者将一个特定的密文转换为私钥，例如：
 
+```go
 priv := ed25519.GenPrivKeyFromSecret([]byte("your secret byte slice"))
 
 fmt.Printf("private key => %v\n",priv)
+```
 
 调用私钥的GetPubKey()方法获得其对应的公钥实例：
 
+```go
 pub := priv.GetPubKey()
 
 fmt.Printf("public key => %v\n",pub)
+```
 
-地址的计算方法，就是对公钥进行sha256哈希计算，然后截取前20个字节。 调用公钥实例的Address()方法获取公钥对应的地址，例如：
+地址的计算方法，就是对公钥进行sha256哈希计算，然后截取前20个字节。 调用公钥实例的`Address()`方法获取公钥对应的地址，例如：
 
+```go
 addr := pub.Address()
 
 fmt.Printf("address => %v\n",addr)
+```
 
 参考教程和示例代码，编写代码生成ed25519私钥、公钥和地址。
 
@@ -917,11 +917,13 @@ fmt.Printf("address => %v\n",addr)
 
 发送方首先使用私钥签名要发送的数据，例如msg的内容：
 
+```go
 privTommy := secp256k1.GenPrivKey()
 
 msg := []byte("some text to send")
 
 sig := privTommy.Sign(msg)
+```
 
 由于secp256k1和ed25519都实现了PrivKey接口，因此你可以任选其一生成 你的私钥。
 
@@ -929,30 +931,28 @@ Sign()方法返回的是一个字节切片，通常和被签名的数据一起�
 
 例如，我们可以使用如下的结构来声明要发送的签名数据：
 
+```go
 type Letter struct {
-
   Msg []byte
-
   Signature []byte
-
   PubKey secp256k1.PubKeySecp256k1
-
 }
+```
 
 将签名数据序列化为字节码流，然后通过网络发送出去，或者拷贝给接收方：
 
+```go
 letter := Letter{msg,sig,pubSender.(kf.PubKeySecp256k1)}
-
 bz,err := json.Marshal(letter)
-
 if err !=nil { panic(err) }
-
 fmt.Printf("encoded letter => %x\n",bz)
+```
 
 在上面的代码中，我们使用了json编码器，当然你可以使用任何其他可用的编解码器， 例如gob。
 
 接收方首先解码接收到的字节码流：
 
+```go
 var received Letter
 
 err = json.Unmarshal(bz,&received)
@@ -961,19 +961,24 @@ if err !=nil { panic( err)}
 
 fmt.Printf("decoded letter => %+v\n",received)
 
+```
+
 然后就可以使用信件中发送方的公钥验证签名了：
 
+```go
 valid := received.PubKey.VerifyBytes(received.Msg,received.Signature)
 
 fmt.Printf("validated => %t\n",valid)
+```
+
 
 参考教程和示例代码，编写代码完成以下任务：
 
-· 生成一对公钥/私钥
+- 生成一对公钥/私钥
 
-· 使用私钥签名指定的消息，并将消息、签名和公钥打包序列化
+- 使用私钥签名指定的消息，并将消息、签名和公钥打包序列化
 
-· 从序列化结果中解码得到消息、签名和公钥，并验证签名
+- 从序列化结果中解码得到消息、签名和公钥，并验证签名
 
 
 
@@ -996,7 +1001,7 @@ fmt.Printf("validated => %t\n",valid)
 
 ### 5.2 状态机实现
 
-账户状态机的主要成员，包括记录系统状态的成员变量Accounts，以及表征交易的 成员函数issue()和transfer()：
+账户状态机的主要成员，包括记录系统状态的成员变量`Accounts`，以及表征交易的 成员函数`issue()`和`transfer()`：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial19993.png) 
 
@@ -1010,7 +1015,7 @@ type  TokenApp struct {
 ```
 
 
-我们使用一个映射来表示系统的整个状态，其中键为哈希地址，值为账户余额。 由于crypto.Address类型其实是一个字节切片，因此我们采用其16进制表示 作为账户映射表的键。
+我们使用一个映射来表示系统的整个状态，其中键为哈希地址，值为账户余额。 由于`crypto.Address`类型其实是一个字节切片，因此我们采用其16进制表示 作为账户映射表的键。
 
 发行交易将向指定的地址发行一定数量的代币，显然，只允许系统设定的发行人 SYSTEM_ISSUER执行该交易：
 
@@ -1037,11 +1042,11 @@ EASY.
 
 参考教程和示例代码，编写abci应用完成以下任务：
 
-· 如果交易的第一个字节为0x01，就向地址1111发行1000个代币
+- 如果交易的第一个字节为0x01，就向地址1111发行1000个代币
 
-· 如果交易的第一个字节为0x02，就从地址1111向地址2222转入100个代币
+- 如果交易的第一个字节为0x02，就从地址1111向地址2222转入100个代币
 
-· 支持查询指定地址的代币余额
+- 支持查询指定地址的代币余额
 
  
 
@@ -1059,7 +1064,7 @@ type Wallet struct {
 }
 ```
 
-钱包应该可以随时创建新的私钥，因此我们实现GenPrivKey()方法：
+钱包应该可以随时创建新的私钥，因此我们实现`GenPrivKey()`方法：
 
 ```go
 func (wallet *Wallet) GenPrivKey(label string) crypto.PrivKey {
@@ -1069,7 +1074,7 @@ func (wallet *Wallet) GenPrivKey(label string) crypto.PrivKey {
 }
 ```
 
-GenPrivKey()方法需要传入一个字符串作为私钥的标识，以便我们可以在 以后使用该标识获取该私钥，或者该私钥对应的公钥或地址：
+`GenPrivKey()`方法需要传入一个字符串作为私钥的标识，以便我们可以在 以后使用该标识获取该私钥，或者该私钥对应的公钥或地址：
 
 ```go
 func (wallet *Wallet) GetPrivKey(label string) crypto.PrivKey {
@@ -1102,13 +1107,10 @@ func LoadWallet(wfn string) *Wallet{
 
 参考教程和示例代码，编写钱包结构实现以下功能：
 
-· 支持按名称提取私钥、公钥和地址
-
-· 支持生成新的私钥
-
-· 支持保存为文件
-
-· 支持从文件载入
+- 支持按名称提取私钥、公钥和地址
+- 支持生成新的私钥
+- 支持保存为文件
+- 支持从文件载入
 
  
 
@@ -1117,15 +1119,15 @@ func LoadWallet(wfn string) *Wallet{
 
  ![](./tendermint_tutorial.files/tendermint_tutorial21836.png)
 
-我们使用一个统一的Tx结构来表示所有的交易，其中交易载荷指向一个Payload接口的 实现，该接口的三个方法可用于接收方的签名验证与交易路由：
+我们使用一个统一的Tx结构来表示所有的交易，其中交易载荷指向一个`Payload`接口的 实现，该接口的三个方法可用于接收方的签名验证与交易路由：
 
-· GetSigner()：获取交易发起方地址
+- `GetSigner()`：获取交易发起方地址
 
-· GetSignBytes()：获取交易载荷中用于签名的数据
+- `GetSignBytes()`：获取交易载荷中用于签名的数据
 
-· GetType()：获取交易类别，状态机根据该调用返回值执行相应的动作
+- `GetType()`：获取交易类别，状态机根据该调用返回值执行相应的动作
 
-在账户状态机应用中，我们需要两种类型的交易：发行交易、转账交易，分别用于 向指定账户发行代币，以及在指定账户之间转移代币。不同的交易对应不同的Payload 接口实现，例如对于转账交易，其对应的TransferPayload结构的接口实现如下：
+在账户状态机应用中，我们需要两种类型的交易：发行交易、转账交易，分别用于 向指定账户发行代币，以及在指定账户之间转移代币。不同的交易对应不同的Payload 接口实现，例如对于转账交易，其对应的`TransferPayload`结构的接口实现如下：
 
 ```go
 func (p *TransferPayload) GetSigner() crypto.Address{   return p.From  }
@@ -1141,17 +1143,11 @@ func (p *TransferPayload)  GetType() string{   return "transfer" }
 
 ```go
 func (app *AccountApp) validateTx(tx *Tx) error {
-
   addr := tx.PubKey.Address()
-
   if !bytes.Equals(addr,tx.Payload.GetSigner()) { return errors.New("pubkey / signer mismatch") }
-
   valid := tx.PubKey.VerifyBytes(tx.Payload.GetSignBytes(),tx.Signature)
-
   if !valid  { errors.New("bad signature") }
-
   return nil
-
 }
 ```
 
@@ -1161,19 +1157,12 @@ func (app *AccountApp) validateTx(tx *Tx) error {
 
 ```go
 switch tx.Payload.GetType(){
-
   case "transfer":  
-
     pld := tx.Payload.(TransferPayload)
-    
     app.transfer(pld.From,pld.To,pld.Value)
-
   case "issue":  
-
     pld := tx.Payload.(IssuePayload)
-    
     app.issue(pld.Issuer,pld.To,pld.Value)
-
 }
 ```
 
@@ -1186,9 +1175,9 @@ switch tx.Payload.GetType(){
 
  ![](./tendermint_tutorial.files/tendermint_tutorial23125.png)
 
-tendermint官方推荐的编解码器是其自产的go-amino，它类似于protobuf，最大的特点是支持 解码到接口类型 —— 这就是我们可以在Tx结构中使用接口类型的原因。
+tendermint官方推荐的编解码器是其自产的`go-amino`，它类似于`protobuf`，最大的特点是支持 解码到接口类型 —— 这就是我们可以在Tx结构中使用接口类型的原因。
 
-amino通过在编码码流中加入标识序列来区分不同的接口实现结构，因此解码接口之前，首先 需要注册接口以及对应的实现结构及标识名，例如，在下面的代码中，我们注册Payload接口， 然后注册其两个实现结构TransferPayload和IssuePayload，并分别使用tx/transfer 和tx/issue来标识这两个Payload接口的实现：
+amino通过在编码码流中加入标识序列来区分不同的接口实现结构，因此解码接口之前，首先 需要注册接口以及对应的实现结构及标识名，例如，在下面的代码中，我们注册Payload接口， 然后注册其两个实现结构`TransferPayload`和`IssuePayload`，并分别使用`tx/transfer`和`tx/issue`来标识这两个Payload接口的实现：
 
 ```go
 codec := amino.NewCodec()
@@ -1201,7 +1190,7 @@ codec.RegisterConcrete(*IssuePayload{},"tx/issue",nil)
 
 ```
 
-需要指出的是，当你使用amino时，并不是所有的自定义类型都需要在codec中注册，只有那些 需要解码到接口类型的结构，才需要进行注册。
+需要指出的是，当你使用`amino`时，并不是所有的自定义类型都需要在`codec`中注册，只有那些 需要解码到接口类型的结构，才需要进行注册。
 
 现在，接收端可以对接收到的二进制码流bz进行解码了：
 
@@ -1217,7 +1206,7 @@ func (app *AccountApp) decodeTx(bz []byte) (*Tx,error){
 }
 ```
 
-当然你可以自由选择自己喜欢的编解码方式，例如gob、json、protobuf等等，不过 需要根据不同的编解码器的特点来调整自己交易结构的设计。
+当然你可以自由选择自己喜欢的编解码方式，例如`gob`、`json`、`protobuf`等等，不过 需要根据不同的编解码器的特点来调整自己交易结构的设计。
 
 参考教程和示例代码，实现交易编解码
 
@@ -1228,9 +1217,9 @@ func (app *AccountApp) decodeTx(bz []byte) (*Tx,error){
 
 ![](./tendermint_tutorial.files/tendermint_tutorial23948.png) 
 
-交易检查：CheckTx
+交易检查：`CheckTx`
 
-在CheckTx()方法实现中检查交易的有效性，只有解码正确并且检查有效的交易才允许 进入交易内存池：
+在`CheckTx()`方法实现中检查交易的有效性，只有解码正确并且检查有效的交易才允许 进入交易内存池：
 
 ```go
 func (app *TokenApp) CheckTx(bz []byte) types.ResponseCheckTx {
@@ -1243,9 +1232,9 @@ func (app *TokenApp) CheckTx(bz []byte) types.ResponseCheckTx {
 }
 ```
 
-交易执行：DeliverTx
+交易执行：`DeliverTx`
 
-在DeliverTx()方法中判断交易类型，然后执行相应的状态迁移：
+在`DeliverTx()`方法中判断交易类型，然后执行相应的状态迁移：
 
 
 ```go
@@ -1267,7 +1256,7 @@ func (app *TokenApp) DeliverTx(bz []byte) (rsp types.ResponseDeliverTx){
 
 状态查询
 
-在Query()方法中返回指定账户的余额：
+在`Query()`方法中返回指定账户的余额：
 
 ```go
 func (app *TokenApp) Query(req types.RequestQuery) types.ResponseQuery{
@@ -1280,20 +1269,19 @@ func (app *TokenApp) Query(req types.RequestQuery) types.ResponseQuery{
 
 参考教程和示例代码，编写abci应用完成以下任务：
 
-· 支持采用Tx交易结构提交的发行与转账交易
+- 支持采用Tx交易结构提交的发行与转账交易
+- 支持交易的签名与验证
+- 支持对指定地址的账户余额查询
 
-· 支持交易的签名与验证
 
-· 支持对指定地址的账户余额查询
-
-5.7 RPC客户端开发
+### 5.7 RPC客户端开发
 tendermint内置了RPC开发接口的API封装包rpc/client，极大地简化了客户端的 开发难度：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial25267.png)
 
-使用rpc/client包的NewHTTP()方法，我们可以得到一个HTTP实例：
+使用rpc/client包的`NewHTTP()`方法，我们可以得到一个HTTP实例：
 
-cli := client.NewHTTP("http://localhost:26657","")
+`cli := client.NewHTTP("http://localhost:26657","")`
 
 HTTP结构实现了tendermint中所有的RPC客户端接口，例如ABCI客户端接口 （ABCIClient）、历史数据访问接口（HistoryClient）等，因此我们可以直接 利用其方法向abci应用提交交易。
 
@@ -1307,21 +1295,21 @@ tx.Sign(issuerPrivKey)
 
 然后将交易实例序列化：
 
-rawtx,_ := codec.MarshalBinary(tx)
+`rawtx,_ := codec.MarshalBinary(tx)`
 
-最后使用HTTP实例的BroadcastTxCommit()方法提交给节点，并 打印输出响应结果：
+最后使用HTTP实例的`BroadcastTxCommit()`方法提交给节点，并 打印输出响应结果：
 
+```go
 ret,_ := cli.BroadcastTxCommit(rawtx)
 
 fmt.Printf("ret => %+v\n",ret)
+```
 
 参考教程和示例代码，编写客户端程序完成以下任务：
 
-· 支持钱包的创建
-
-· 支持发行交易与转账交易的提交
-
-· 支持账户余额的查询
+- 支持钱包的创建
+- 支持发行交易与转账交易的提交
+- 支持账户余额的查询
 
  
 
@@ -1331,7 +1319,7 @@ fmt.Printf("ret => %+v\n",ret)
 
 在ABCI应用响应Commit请求消息时，需要计算并返回当前状态的哈希，以便Tendermint 将其打包到下一个区块头里（app_hash字段）。
 
-但是，如果我们还按原来的方法计算一个总体哈希，例如：hash: = tmhash.Sum(state)， 就存在一个问题 —— 当查询某个特定账户的状态数据时，如何验证该状态是未被篡改的？
+但是，如果我们还按原来的方法计算一个总体哈希，例如：`hash: = tmhash.Sum(state)`， 就存在一个问题 —— 当查询某个特定账户的状态数据时，如何验证该状态是未被篡改的？
 
 显然，单独返回整个状态的哈希是不够的，但是我们也不可能将整个账户表提供给 客户端以便其重算哈希进行验证，因为其中包含了其他用户的账户信息。
 
@@ -1347,9 +1335,9 @@ fmt.Printf("ret => %+v\n",ret)
 
 阅读教程，回答以下问题：
 
-· 为什么要使用merkle tree计算状态哈希？
+- 为什么要使用merkle tree计算状态哈希？
 
-· 对于图中的账户B，其状态的merkle proof是哪些节点？
+- 对于图中的账户B，其状态的merkle proof是哪些节点？
 
  
 
@@ -1360,7 +1348,7 @@ fmt.Printf("ret => %+v\n",ret)
 
 Hasher接口
 
-使用crypto/merkle包计算数据集合的默克尔哈希，要求集合中的成员实现Hasher接口。例如， 我们使用下面的结构来满足这一需求：
+使用`crypto/merkle`包计算数据集合的默克尔哈希，要求集合中的成员实现Hasher接口。例如， 我们使用下面的结构来满足这一需求：
 
 ```go
 type sh struct{
@@ -1376,7 +1364,7 @@ func (h sh) Hash() []byte {
 
 有序集合的哈希计算
 
-有序集合（例如：切片）中各成员有确定性的先后顺序，因此可以直接使用SimpleHashFromHashers() 方法进行计算。例如：
+有序集合（例如：切片）中各成员有确定性的先后顺序，因此可以直接使用`SimpleHashFromHashers()` 方法进行计算。例如：
 
 ```go
 
@@ -1389,7 +1377,7 @@ fmt.Printf("root hash => %x\n",hash)
 
 无序集合的哈希计算
 
-无序集合（例如：映射表）的各成员没有确定性的先后顺序，因此需要首先进行确定排序，重组为有序 集合后才能使用SimpleHashFromHashers()方法计算该集合的默克尔哈希。对于键类型为string、值类型 为Hasher的映射表而言，可以直接使用SimpleHashFromMap()方法。例如：
+无序集合（例如：映射表）的各成员没有确定性的先后顺序，因此需要首先进行确定排序，重组为有序 集合后才能使用`SimpleHashFromHashers()`方法计算该集合的默克尔哈希。对于键类型为string、值类型 为Hasher的映射表而言，可以直接使用`SimpleHashFromMap()`方法。例如：
 
 ```go
 data := map[string]merkle.Hasher{
@@ -1405,9 +1393,9 @@ fmt.Printf("root hash => %x\n",hash)
 
 参考教程和示例代码，编写程序完成以下任务：
 
-· 计算切片的默克尔哈希：[]string{"hello","good day","morning","see you later"}
+- 计算切片的默克尔哈希：`[]string{"hello","good day","morning","see you later"}`
 
-· 计算映射的默克尔哈希：map[string]int{"tom":99,"mike":80,"linda":92,"lizzie":66}
+- 计算映射的默克尔哈希：`map[string]int{"tom":99,"mike":80,"linda":92,"lizzie":66}`
 
  
 
@@ -1416,29 +1404,32 @@ fmt.Printf("root hash => %x\n",hash)
 ### 6.3 状态的默克尔证据
 在使用默克尔树时，如果需要验证某个数据是否属于一个特定的集合，除了待验证的数据自身， 还需要以下数据：
 
-· 数据集合的根哈希：表征特定的数据集合
+- 数据集合的根哈希：表征特定的数据集合
 
-· 数据的默克尔证据：配合待验证数据重算根哈希，以便于给定的根哈希比较
+- 数据的默克尔证据：配合待验证数据重算根哈希，以便于给定的根哈希比较
 
 tendermint的crypto/merkle包提供了简单的方法返回集合中每个成员对应的默克尔 证据以及集合的根哈希：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial27738.png) 
 
-数据聚合中每个成员对应的默克尔证据就是一个SimpleProof实例，因此可以直接调用 其Verify()方法进行验证。
+数据聚合中每个成员对应的默克尔证据就是一个`SimpleProof`实例，因此可以直接调用 其`Verify()`方法进行验证。
 
 同样，获取数据成员的默克尔证据也分为有序集合与无序集合两种情况。
 
 有序集合成员的默克尔证据
 
-使用SimpleProofsFromHashers()方法获取有序集合（例如：切片）中各成员的默克尔证据， 成员必须实现Hasher接口，该方法返回两个值：根哈希以及默克尔证据数组。
+使用`SimpleProofsFromHashers()`方法获取有序集合（例如：切片）中各成员的默克尔证据， 成员必须实现`Hasher`接口，该方法返回两个值：根哈希以及默克尔证据数组。
 
 还是利用前一节的sh类型，下面的代码展示了如何获取切片中各成员的默克尔证据：
 
+```go
 data := []sh{sh("one"),sh("two"),sh("three"),sh("four")}
 
 root,proofs := merkle.SimpleProofsFromHashers(data)
 
 fmt.Printf("proof for one => %+v\n",proofs[0])
+```
+
 
 在返回结果中的默克尔证据数组，其成员顺序与输入数据一致。
 
@@ -1455,7 +1446,7 @@ valid := proofs[0].Verify{
 
 无序集合成员的默克尔证据
 
-同样，没有确定性成员顺序的映射表，需要使用SimpleProofsFromMap()方法计算每个 成员的默克尔证据，其返回结果是三个值：根哈希、成员默克尔证据映射表和排序后的 成员键。例如：
+同样，没有确定性成员顺序的映射表，需要使用`SimpleProofsFromMap()`方法计算每个 成员的默克尔证据，其返回结果是三个值：根哈希、成员默克尔证据映射表和排序后的 成员键。例如：
 
 ```go
 data := map[string]sh{
@@ -1471,7 +1462,7 @@ fmt.Printf("proof for tom => %+v\n",proofs["tom"])
 
 由于在计算映射表的默克尔证据时首先将无序的键值对转化为了KVPair结构并 进行排序，因此其成员时，也需要首先将其转换为KVPair类型，而不能仅使用键值对 中的值部分：
 
-kvpair := merkle.KVPair{Key:[]byte("tom"),Value: data["tom"].Hash()}
+`kvpair := merkle.KVPair{Key:[]byte("tom"),Value: data["tom"].Hash()}`
 
 然后根据该成员在排序后的顺序号（keys中的位置），进行验证，例如：
 
@@ -1489,9 +1480,9 @@ fmt.Printf("data["tom"] is valid? => %t\n",valid)
 
 参考教程和示例代码，编写程序完成以下任务：
 
-· 计算切片[]string{"hello","good day","morning","see you later"}中第三个成员状态的 默克尔证据，并进行验证
+- 计算切片`[]string{"hello","good day","morning","see you later"}`中第三个成员状态的 默克尔证据，并进行验证
 
-· 计算映射map[string]int{"tom":99,"mike":80,"linda":92,"lizzie":66} 中lizzie状态 的默克尔证据，并进行验证
+- 计算映射`map[string]int{"tom":99,"mike":80,"linda":92,"lizzie":66}` 中lizzie状态 的默克尔证据，并进行验证
 
  
 
@@ -1588,13 +1579,13 @@ avl树得名于发明者G. M. Adelson-Velsky和Evgenii Landis，它是一种 自
 
 当我们需要在树中定位值为19的节点时，从根节点出发，只需要三次对比就可以定位：
 
-· 10 < 50，因此进入50的左侧子树继续搜索
+- 10 < 50，因此进入50的左侧子树继续搜索
 
-· 19 > 17，因此进入17的右侧子树继续搜索
+- 19 > 17，因此进入17的右侧子树继续搜索
 
-· 19 < 23，因此进入23的左侧子树继续搜索
+- 19 < 23，因此进入23的左侧子树继续搜索
 
-· 19 == 19，定位成功
+- 19 == 19，定位成功
 
 平衡是指树中任一节点旳左右两棵子树的高度差不超过1。例如，上面的树就不是平衡的， 该数据集对应的平衡树如下图所示：
 
@@ -1604,9 +1595,9 @@ avl树得名于发明者G. M. Adelson-Velsky和Evgenii Landis，它是一种 自
 
 阅读教程，从以下陈述中选择正确的说法：
 
-· 二叉树是指的树中的每一个节点都有两个子节点
+- 二叉树是指的树中的每一个节点都有两个子节点
 
-· 平衡的意思是树中的每一个节点，左右子树的高度差不超过1
+- 平衡的意思是树中的每一个节点，左右子树的高度差不超过1
 
  
 
@@ -1617,22 +1608,21 @@ avl树得名于发明者G. M. Adelson-Velsky和Evgenii Landis，它是一种 自
 
 为了便于计算默克尔哈希，在tendermint的avl树实现中，只有在叶节点中才会保存实际的状态值， 中间节点仅用于key的比较和哈希的计算。由于在所有节点中已经预存了左右子节点的哈希，因此可以 快速获取整棵树的根节点哈希，即状态集合的哈希。
 
-iavl支持同一个key值的多个版本，这通过在节点结构中引入version项来实现：当一个节点被新版本 的数据更新后，iavl会同时保留其历史版本，因此使用iavl可以快速回溯到任何状态的任意历史版本。
+`iavl`支持同一个key值的多个版本，这通过在节点结构中引入version项来实现：当一个节点被新版本 的数据更新后，`iavl`会同时保留其历史版本，因此使用`iavl`可以快速回溯到任何状态的任意历史版本。
 
-课堂环境中已经预装了iavl软件包，如果你希望在自己的机器上使用，可以如下方法安装：
+课堂环境中已经预装了`iavl`软件包，如果你希望在自己的机器上使用，可以如下方法安装：
 
-~$ go get github.com/tendermint/iavl
+`~$ go get github.com/tendermint/iavl`
 
 阅读教程，回答以下问题：
 
-· 在使用iavl树保存状态集合时，哪些节点用来保存单个状态？
-
-· 对于iavl树中的状态节点，定位时是使用哪一个字段：key、value、hash？
+- 在使用`iavl`树保存状态集合时，哪些节点用来保存单个状态？
+- 对于`iavl`树中的状态节点，定位时是使用哪一个字段：key、value、hash？
 
  
 
 ### 7.3 使用多版本状态库
-tendermint/iavl软件包的主要模型包括可修改树（MutableTree）、只读树（ImmutableTree） 以及状态证据（RangeProof）等，其关系如下图所示：
+tendermint/iavl软件包的主要模型包括可修改树（`MutableTree`）、只读树（`ImmutableTree`） 以及状态证据（`RangeProof`）等，其关系如下图所示：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial31950.png)
 
@@ -1642,11 +1632,13 @@ ImmutableTree是一个只读的二叉平衡哈希树，而MutableTree则提供�
 
 iavl使用leveldb数据库保存节点以及其关系，例如，下面的代码从当前目录下的 counter数据库加载状态库，并使用Load()方法将载入最后版本的状态：
 
+```go
 gdb,_ := db.NewGoLevelDB("counter",".")
 
 tree := iavl.NewMutableTree(gdb,128)
 
 tree.Load()
+```
 
 工作区
 
@@ -1654,35 +1646,35 @@ tree.Load()
 
 一旦将状态载入工作区，我们就可以利用Set()方法设置指定的键/值对了。例如，下面的 代码设置键name的值为tommy：
 
-tree.Set([]byte("name"),[]byte("Tommy"))
+`tree.Set([]byte("name"),[]byte("Tommy"))`
 
 当我们调用Get()方法时，是从当前工作区中读取指定键的值，例如：
 
-idx,val := tree.Get([]byte("name"))
+`idx,val := tree.Get([]byte("name"))`
 
 其中，返回的idx表示该键对应的叶节点在集合中的先后序号，val表示键对应的值。
 
-如果需要从状态库中指定版本读取键值，可以使用GetVersioned()方法。例如， 下面的代码读取版本2的指定键值：
+如果需要从状态库中指定版本读取键值，可以使用`GetVersioned()`方法。例如， 下面的代码读取版本2的指定键值：
 
-idx,val := tree.GetVersioned([]byte{"name"},2)
+`idx,val := tree.GetVersioned([]byte{"name"},2)`
 
 提交新版本
 
-所有的修改完毕后，使用SaveVersion()方法将工作区的变更提交到库中，这将返回根节点 哈希和新的版本号：
+所有的修改完毕后，使用`SaveVersion()`方法将工作区的变更提交到库中，这将返回根节点 哈希和新的版本号：
 
-hash,ver,err := tree.SaveVersion()
+`hash,ver,err := tree.SaveVersion()`
 
 iavl库的版本号是从0开始，每个版本加1。
 
 参考教程和示例代码，编写程序完成如下任务：
 
-· 使用leveldb初始化一个iavl树
+- 使用leveldb初始化一个iavl树
 
-· 载入iavl树的最后版本
+- 载入iavl树的最后版本
 
-· 向iavl树中存入账户1111的状态（其余额为1000）和账户2222的状态（余额为2000）
+- 向iavl树中存入账户1111的状态（其余额为1000）和账户2222的状态（余额为2000）
 
-· 提交工作区中的修改，并显示版本号与状态哈希
+- 提交工作区中的修改，并显示版本号与状态哈希
 
  
 
@@ -1709,19 +1701,12 @@ GetBalance()方法获取指定地址的当前（最后版本）余额：
 
 ```go
 func (store *Store) GetBalance(addr crypto.Address) (int,error) {
-
   _,bz := store.tree.Get(addr)
-
   if bz == nil { return 0,errors.New("account not found") }  
-
   var val int
-
   err := codec.UnmarshalBinary(bz,&val)
-
   if err !=nil { return 0,errors.New("decode error")}
-
   return val,nil
-
 }
 ```
 
@@ -1730,19 +1715,12 @@ GetBalanceVersoined()方法获取特定版本的指定地址余额：
 
 ```go
 func (store *Store) GetBalanceVersioned(addr crypto.Address,version int64) (int,error) {
-
   _,bz := store.tree.GetVersioned(addr,version)
-
   if bz == nil { return 0,errors.New("account not found on this version") }  
-
   var val int
-
   err := codec.UnmarshalBinary(bz,&val)
-
   if err !=nil { return 0,errors.New("decode error")}
-
   return val,nil
-
 }
 ```
 
@@ -1880,58 +1858,37 @@ tendermint是拜占庭容错的共识机制，因此在3f+1个验证节点中，
 
  ![](./tendermint_tutorial.files/tendermint_tutorial36069.png)
 
-为简化问题，我们仅实现三个主要的ABCI接口 —— CheckTx、DeliverTx和Query， 同时，使用0x01~0x03分别表示递增、递减和复位交易：
+为简化问题，我们仅实现三个主要的ABCI接口 —— `CheckTx`、`DeliverTx`和`Query`， 同时，使用0x01~0x03分别表示递增、递减和复位交易：
 
 ```go
 type App struct {
-
   types.BaseApplication
-
   Value int
-
 }
 
 func (app *App) CheckTx(tx []byte) (rsp types.ResponseCheckTx) {
-
   if tx[0] < 0x04 {  return }
-
   rsp.Code = 1
-
   return
-
 }
-
- 
 
 func (app *App) DeliverTx(tx []byte) (rsp types.ResponseDeliverTx) {
-
   switch tx[0] {
-
     case 0x01 : app.Value += 1
-    
     case 0x02 : app.Value -= 1
-    
     case 0x03 : app.Value = 0
-
   }
-
   return
-
 }
 
- 
-
 func (app *App) Query(req types.RequestQuery) (rsp types.ResponseQuery) {
-
   rsp.Log = fmt.Sprintf("counter: %d",app.Value)
-
   return
-
 }
 
 ```
 
-你可以查看~/repo/go/src/hubwiz.com/c8/smr.go中的完整示例代码。
+你可以查看`~/repo/go/src/hubwiz.com/c8/smr.go`中的完整示例代码。
 
 参考教程和示例代码，实现计数应用的App结构。
 
@@ -1940,7 +1897,7 @@ func (app *App) Query(req types.RequestQuery) (rsp types.ResponseQuery) {
 ### 8.3 命令行封装：cobra子命令
 
 
-Tendermint的命令行程序是基于spf13/cobra开发包开发的，每个子命令都对应着 一个cobra/Command结构的实例，例如，初始化节点子命令init对应着InitFilesCmd这个 对象，而RootCmd则对应着根命令：
+Tendermint的命令行程序是基于`spf13/cobra`开发包开发的，每个子命令都对应着 一个`cobra/Command`结构的实例，例如，初始化节点子命令init对应着`InitFilesCmd`这个 对象，而`RootCmd`则对应着根命令：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial36870.png)
 
@@ -1956,19 +1913,17 @@ func main(){
 }
 ```
 
-PrepareBaseCmd()方法将指定的Command实例转换为一个Executor对象，它进行 必要的环境变量设置（根据第二个参数指定的前缀），并确定命令行的默认工作目录 （第三个参数）。
+`PrepareBaseCmd()`方法将指定的`Command`实例转换为一个`Executor`对象，它进行 必要的环境变量设置（根据第二个参数指定的前缀），并确定命令行的默认工作目录 （第三个参数）。
 
-在上面代码中，我们将默认工作目录设置为当前目录，这意味着在默认情况下， 当执行init子命令时，将在当前目录下生成data和config子目录。不过在RootCmd 中定义了全局标志--home，可以在命令行指定其他目录为节点工作目录。例如， 下面的代码将在当前目录下的n1子目录中执行初始化命令：
+在上面代码中，我们将默认工作目录设置为当前目录，这意味着在默认情况下， 当执行init子命令时，将在当前目录下生成data和config子目录。不过在`RootCmd` 中定义了全局标志`--home`，可以在命令行指定其他目录为节点工作目录。例如， 下面的代码将在当前目录下的n1子目录中执行初始化命令：
 
-~/repo/go/src/hubwiz.com/c8$ go run smr.go init --home n1
+`~/repo/go/src/hubwiz.com/c8$ go run smr.go init --home n1`
 
 参考教程和示例代码，为计数应用添加如下子命令：
 
-· init：初始化节点配置
-
-· unsafe_reset_all：复位节点配置
-
-· show_node_id：查看节点ID
+- `init`：初始化节点配置
+- `unsafe_reset_all`：复位节点配置
+- `show_node_id`：查看节点ID
 
  
 
@@ -1976,13 +1931,13 @@ PrepareBaseCmd()方法将指定的Command实例转换为一个Executor对象，�
 
 ### 8.4 实现节点提供器
 
-与其他cobra命令不同，用于启动节点旳node子命令对应于一个NewRunNodeCmd()方法， 它是一个构建cobra/Command实例的工厂方法，需要传入一个NodeProvider类型的变量：
+与其他`cobra`命令不同，用于启动节点旳`node`子命令对应于一个`NewRunNodeCmd()`方法， 它是一个构建`cobra/Command`实例的工厂方法，需要传入一个`NodeProvider`类型的变量：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial37612.png)
 
 NodeProvider其实是返回节点实例的函数，其原型定义如下：
 
-type NodeProvider func(config *cfg.Config, logger log.Logger) (*node.Node, error)
+`type NodeProvider func(config *cfg.Config, logger log.Logger) (*node.Node, error)`
 
 其中，参数config（节点配置）和logger（日志）都是由tendermint框架在启动时传入的参数。
 
@@ -1990,42 +1945,24 @@ NodeProvider是基于具体的abci应用创建的。例如，下面的代码利�
 
 ```go
 app := NewApp()
-
 nodeProvider := makeNodeProvider(app)
-
 root.AddCommand(commands.NewRunNodeCmd(nodeProvider))
-
 makeNodeProvider()函数返回NodeProvider实例，其实现代码如下：
 
 func makeNodeProvider(app types.Application) node.NodeProvider {
 
   return func(config *cfg.Config, logger log.Logger) (*node.Node, error) {
-
       nodeKey, err := p2p.LoadOrGenNodeKey(config.NodeKeyFile())
-    
       if err != nil {  return nil, err }
-
- 
-
-
       return node.NewNode(config,
-    
           privval.LoadOrGenFilePV(config.PrivValidatorFile()),
-    
           nodeKey,
-    
           proxy.NewLocalClientCreator(app),
-    
           node.DefaultGenesisDocProviderFunc(config),
-    
           node.DefaultDBProvider,
-    
           node.DefaultMetricsProvider(config.Instrumentation),
-    
           logger)
-
   }
-
 }
 ```
 
@@ -2034,17 +1971,16 @@ func makeNodeProvider(app types.Application) node.NodeProvider {
 
 在整合了abci应用和cobra命令代码后，为了简化后续的键盘输入，我们将其 编译安装：
 
-~/repo/go/src/hubwiz.com/c8$ go install smr.go
+`~/repo/go/src/hubwiz.com/c8$ go install smr.go`
 
 现在可以很简单地执行节点程序：
 
-~/repo/go/hubwiz.com/c8$ smr
+`~/repo/go/hubwiz.com/c8$ smr`
 
 参考教程和示例代码，完成以下任务：
 
-· 实现计数应用的node子命令
-
-· 编译smr代码并安装可执行文件
+- 实现计数应用的node子命令
+- 编译smr代码并安装可执行文件
 
  
 
@@ -2055,29 +1991,27 @@ Tendermint支持两种类型的节点：验证节点（Validator）和观察节�
 
 第一个节点旳基本参数是：
 
-· P2P通信端口：26656
-
-· RPC服务端口：26657
-
-· 节点目录：n1
+- P2P通信端口：26656
+- RPC服务端口：26657
+- 节点目录：n1
 
 节点初始化与启动
 
 进入1#终端，执行init子命令初始化第一个节点，注意使用--home标志指定节点目录：
 
-~/repo/go/src/hubwiz.com/c8$ smr init --home n1
+`~/repo/go/src/hubwiz.com/c8$ smr init --home n1`
 
 执行show_node_id子命令显示并记录第一个节点旳ID：
 
-~/repo/go/src/hubwiz.com/c8$ smr show_node_id --home n1
+`~/repo/go/src/hubwiz.com/c8$ smr show_node_id --home n1`
 
 输出结果为节点旳ID，我们后续会用到，请记下来（你的ID应该与此不同）：
 
-fd8debec2b97adfa0f6e8bae939c22a69cda9741
+`fd8debec2b97adfa0f6e8bae939c22a69cda9741`
 
 然后执行node子命令启动第一个节点：
 
-~/repo/go/src/hubwiz.com/c8$ smr node --home n1
+`~/repo/go/src/hubwiz.com/c8$ smr node --home n1`
 
 测试状态机交易
 
@@ -2085,21 +2019,21 @@ fd8debec2b97adfa0f6e8bae939c22a69cda9741
 
 增加：
 
-~$ curl localhost:26657/broadcast_tx_commit?tx=0x0101
+`~$ curl localhost:26657/broadcast_tx_commit?tx=0x0101`
 
-~$ curl localhost:26657/abci_query
+`~$ curl localhost:26657/abci_query`
 
 减少：
 
-~$ curl localhost:26657/broadcast_tx_commit?tx=0x0201
+`~$ curl localhost:26657/broadcast_tx_commit?tx=0x0201`
 
-~$ curl localhost:26657/abci_query
+`~$ curl localhost:26657/abci_query`
 
 复位：
 
-~$ curl localhost:26657/broadcast_tx_commit?tx=0x0301
+`~$ curl localhost:26657/broadcast_tx_commit?tx=0x0301`
 
-~$ curl localhost:26657/abci_query
+`~$ curl localhost:26657/abci_query`
 
 参考教程和示例代码，进行单节点实验。
 
@@ -2112,42 +2046,35 @@ fd8debec2b97adfa0f6e8bae939c22a69cda9741
 
 第二个节点旳基本参数是：
 
-· P2P通信端口：36656
-
-· RPC服务端口：36657
-
-· 节点目录：n2
+- P2P通信端口：36656
+- RPC服务端口：36657
+- 节点目录：n2
 
 节点初始化配置与启动
 
 进入2#终端，执行init子命令初始化第二个节点：
 
-~/repo/go/src/hubwiz.com/c8$ smr init --home n2
+`~/repo/go/src/hubwiz.com/c8$ smr init --home n2`
 
 由于这个节点是观察节点，因此我们可以直接使用验证节点旳创世文件：
 
-~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n2/config/genesis.json
+`~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n2/config/genesis.json`
 
 同时修改n2/config/config.toml，设置其rpc监听端口为36657，p2p监听端口为36656， 并使其主动连接第一个节点，其中fd8d...41为第一个节点旳ID（使用show_node_id 子命令获取）：
 
 ```
 [rpc]
-
 laddr = "tcp://0.0.0.0:36657"
 
- 
-
 [p2p]
-
 laddr = "tcp://0.0.0.0:36656"
-
 persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 ```
 
 现在2#终端启动第二个节点：
 
-~/repo/go/src/hubwiz.com/c8$ smr node --home n2
+`~/repo/go/src/hubwiz.com/c8$ smr node --home n2`
 
 交易测试
 
@@ -2155,13 +2082,13 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 首先在5#终端分别查看节点一和节点二的状态：
 
-~/repo/go/src/hubwiz.com/c8$ curl localhost:26657/abci_query
+`~/repo/go/src/hubwiz.com/c8$ curl localhost:26657/abci_query`
 
-~/repo/go/src/hubwiz.com/c8$ curl localhost:36657/abci_query
+`~/repo/go/src/hubwiz.com/c8$ curl localhost:36657/abci_query`
 
 然后利用节点一的rpc接口提交交易：
 
-~/repo/go/src/hubwiz.com/c8$ curl localhost:26657/broadcast_tx_commit?tx=0x01
+`~/repo/go/src/hubwiz.com/c8$ curl localhost:26657/broadcast_tx_commit?tx=0x01`
 
 再次查看节点一和节点二的状态，你可以观察到同样的最新状态
 
@@ -2171,7 +2098,7 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 首先在1#终端按ctrl+c停止smr的运行，然后在5#终端通过节点二提交交易：
 
-~/repo/go/src/hubwiz.com/c8$ curl localhost:26657/broadcast_tx_commit?tx=0x01
+`~/repo/go/src/hubwiz.com/c8$ curl localhost:26657/broadcast_tx_commit?tx=0x01`
 
 该命令会一直挂起直至超时，因为交易始终无法确认。
 
@@ -2189,17 +2116,15 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 第三个节点旳基本参数是：
 
-· P2P通信端口：46656
-
-· RPC服务端口：46657
-
-· 节点目录：n3
+- P2P通信端口：46656
+- RPC服务端口：46657
+- 节点目录：n3
 
 节点初始化配置与启动
 
 进入3#终端，执行init子命令初始化节点三的目录n3：
 
-~/repo/go/src/hubwiz.com/c8$ smr init --home n3
+`~/repo/go/src/hubwiz.com/c8$ smr init --home n3`
 
 由于这个节点是验证节点，因此我们需要在节点一现有的创世文件中添加该节点 的priv_validator.json文件中的公钥和地址，其中每个验证节点旳power值用来 表征其代表的权益：
 
@@ -2209,29 +2134,24 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 然后将新的创世文件分发给节点二和节点三：
 
-~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n2/config/genesis.json
+`~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n2/config/genesis.json`
 
-~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n3/config/genesis.json
+`~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n3/config/genesis.json`
 
 同时修改n3/config/config.toml，设置其rpc监听端口为46657，p2p监听端口为46656， 并使其主动连接第一个节点，其中fd8d...41为第一个节点旳ID（使用show_node_id 子命令获取）：
 
 ```
 [rpc]
-
 laddr = "tcp://0.0.0.0:46657"
-
  
-
 [p2p]
-
 laddr = "tcp://0.0.0.0:46656"
-
 persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 ```
 
 现在3#终端启动第二个节点：
 
-~/repo/go/src/hubwiz.com/c8$ smr node --home n3
+`~/repo/go/src/hubwiz.com/c8$ smr node --home n3`
 
 交易测试
 
@@ -2239,13 +2159,13 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 首先在5#终端分别查看三个节点的状态：
 
-~/repo/go/src/hubwiz.com/c8$ curl localhost:26657/abci_query
+`~/repo/go/src/hubwiz.com/c8$ curl localhost:26657/abci_query`
 
-~/repo/go/src/hubwiz.com/c8$ curl localhost:36657/abci_query
+`~/repo/go/src/hubwiz.com/c8$ curl localhost:36657/abci_query`
 
 然后利用节点一的rpc接口提交交易：
 
-~/repo/go/src/hubwiz.com/c8$ curl localhost:26657/broadcast_tx_commit?tx=0x0101
+`~/repo/go/src/hubwiz.com/c8$ curl localhost:26657/broadcast_tx_commit?tx=0x0101`
 
 再次查看三个节点的状态，你可以观察到同样的最新状态
 
@@ -2255,7 +2175,7 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 首先在3#终端按ctrl+c停止smr的运行，然后在5#终端通过节点二提交交易：
 
-~/repo/go/src/hubwiz.com/c8$ curl localhost:36657/broadcast_tx_commit?tx=0x0102
+`~/repo/go/src/hubwiz.com/c8$ curl localhost:36657/broadcast_tx_commit?tx=0x0102`
 
 该命令会一直挂起直至超时，因为交易始终无法确认。
 
@@ -2274,39 +2194,32 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 第四个节点旳基本参数是：
 
-· P2P通信端口：56656
-
-· RPC服务端口：56657
-
-· 节点目录：n4
+- P2P通信端口：56656
+- RPC服务端口：56657
+- 节点目录：n4
 
 节点初始化配置与启动
 
 进入1#终端，首先初始化第四个节点目录：
 
-~/repo/go/src/hubwiz.com/c8$ smr init --home n4
+`~/repo/go/src/hubwiz.com/c8$ smr init --home n4`
 
 修改节点一的创世文件，将其他三个节点的priv_validator.json文件中的公钥和地址 添加进去，然后将新的创世文件分发给其他节点
 
-~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n2/config/genesis.json
+`~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n2/config/genesis.json`
 
-~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n3/config/genesis.json
+`~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n3/config/genesis.json`
 
-~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n4/config/genesis.json
+`~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n4/config/genesis.json`
 
 同时修改节点2/3/4的config/config.toml，设置其rpc监听端口分别为36657/46657/56657， p2p监听端口分别为36656/46656/56656，并使其主动连接第一个节点，其中fd8d...41为第一 个节点旳ID（使用show_node_id子命令获取）。以节点2为例：
 
 ```
 [rpc]
-
 laddr = "tcp://0.0.0.0:56657"
 
- 
-
 [p2p]
-
 laddr = "tcp://0.0.0.0:56656"
-
 persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 ```
@@ -2314,7 +2227,7 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 分别在四个终端启动四个目录对应的节点，例如，在2#终端启动节点2：
 
-~/repo/go/src/hubwiz.com/c8$ smr node --home n2
+`~/repo/go/src/hubwiz.com/c8$ smr node --home n2`
 
 容错测试
 
@@ -2322,7 +2235,7 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 首先在1#终端按ctrl+c停止smr的运行，然后在5#终端通过节点二提交交易：
 
-~/repo/go/src/hubwiz.com/c8$ curl localhost:36657/broadcast_tx_commit?tx=0x0101
+`~/repo/go/src/hubwiz.com/c8$ curl localhost:36657/broadcast_tx_commit?tx=0x0101`
 
 可以观察到交易正常完成。
 
