@@ -1,2 +1,5 @@
 # BlockchainNotesV2
-blockchain notes v2
+区块链开发学习笔记
+
+- [Tendermint开发教程](./doc/tendermint_tutorial/README.md)
+
