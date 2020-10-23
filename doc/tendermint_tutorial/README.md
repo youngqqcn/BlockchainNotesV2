@@ -22,7 +22,7 @@ tendermint是一个开源的完整的区块链实现，可以用于公链或联�
 
 ![](./tendermint_tutorial.files/tendermint_tutorial180.png)
 
-tendermint的SDK中包含了构造一个区块链节点旳绝大部分组件，例如加密算法、共识算法、 区块链存储、RPC接口、P2P通信等等，开发人员只需要根据其应用开发接口 （Application Blockchain Communication Interface）的要求实现自己 的应用即可。
+tendermint的SDK中包含了构造一个区块链节点的绝大部分组件，例如加密算法、共识算法、 区块链存储、RPC接口、P2P通信等等，开发人员只需要根据其应用开发接口 （Application Blockchain Communication Interface）的要求实现自己 的应用即可。
 
 ABCI是开发语言无关的，开发人员可以使用自己喜欢的任何语言来开发基于tendermint的 专用区块链。不过由于tendermint本身是采用go语言开发的，因此用go开发ABCI应用的一个额外好处 就是，你可以把tendermint完整的嵌入自己的应用，干净利落地交付一个单一的可执行文件。
 
@@ -109,7 +109,7 @@ merkle树是区块链中经常使用的一种数据结构，在这一章我们�
 
 第八章 多节点组网
 
-本章介绍如何进行多个tendermint节点/应用旳组网。
+本章介绍如何进行多个tendermint节点/应用的组网。
 
 
 
@@ -246,7 +246,7 @@ create_empty_blocks = false
  
 
 ### 2.4 编写最小化应用
-tendermint开发包中已经包含了一个基本的ABCI应用实现类`BaseApplication`， 可以完成与tendermint节点旳基本交互：
+tendermint开发包中已经包含了一个基本的ABCI应用实现类`BaseApplication`， 可以完成与tendermint节点的基本交互：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial4462.png)
 
@@ -287,7 +287,7 @@ func main(){
 ![](./tendermint_tutorial.files/miniapp_2.png) 
 
 ### 2.5 RPC开发接口
-在一个典型的（非理想化的）去中心化应用的开发中，除了需要开发链上应用 （例如ABCI应用或者以太坊中的智能合约），往往还需要开发传统的网页应用 /桌面应用/手机应用，以方便那些不可能自己部署节点旳用户：
+在一个典型的（非理想化的）去中心化应用的开发中，除了需要开发链上应用 （例如ABCI应用或者以太坊中的智能合约），往往还需要开发传统的网页应用 /桌面应用/手机应用，以方便那些不可能自己部署节点的用户：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial5263.png) 
 
@@ -508,19 +508,19 @@ tendermint将ABCI协议交互过程进行了封装，开发者只需要实现App
 
  ![](./tendermint_tutorial.files/tendermint_tutorial7580.png)
 
-上图列出了Application接口约定的方法，每个方法对应于一个特定的ABCI消息：
+上图列出了Application接口约定的方法，每个方法对应于一个特定的`ABCI`消息：
 
-- **`Info`**：当tendermint与ABCI应用建立初始连接时，将发送Info请求消息尝试获取应用状态对应的区块 高度、状态哈希等信息，以确定是否需要重放（replay）区块交易。
+- **`Info`**：当tendermint与`ABCI`应用建立初始连接时，将发送`Info`请求消息尝试获取应用状态对应的区块 高度、状态哈希等信息，以确定是否需要重放（replay）区块交易。
 
-- **`Query`**：当Rpc客户端发出`abci_query`调用时，tendermint将通过`Query`请求消息转发给ABCI应用，并 将响应结果转发回Rpc客户端。
+- **`Query`**：当RPC客户端发出`abci_query`调用时，tendermint将通过`Query`请求消息转发给`ABCI`应用，并将响应结果转发回RPC客户端。
 
-- **`CheckTx`**：当tendermint从Rpc接口或p2p端口收到新的交易时，首先会通过`CheckTx`请求消息提给ABCI应用 进行初步检查，确认该交易是否合规。只有ABCI应用确认有效的消息才会进入tendermint的交易 池等待下一步的共识确认。
+- **`CheckTx`**：当tendermint从RPC接口或p2p端口收到新的交易时，首先会通过`CheckTx`请求消息提给`ABCI`应用 进行初步检查，确认该交易是否合规。只有`ABCI`应用确认有效的消息才会进入tendermint的交易池等待下一步的共识确认。
 
 - **`InitChain`**：当创建创世块时，tendermint会发送`InitChain`请求消息给`ABCI`应用，可以在此刻进行 应用状态机的状态初始化。
 
-- **`BeginBlock/EndBlock`**：当tendermint就新区块交易达成共识后，将通过`BeginBlock`请求开始启动ABCI应用 的交易执行流程，并以`EndBlock`请求作为交易执行流程的结束。
+- **`BeginBlock/EndBlock`**：当tendermint就新区块交易达成共识后，将通过`BeginBlock`请求开始启动`ABCI`应用 的交易执行流程，并以`EndBlock`请求作为交易执行流程的结束。
 
-- **`DeliverTx`**：在`BeginBlock`和`EndBlock`请求之间，tendermint会为区块中的每一个交易向ABCI应用 发出一个`DeliverTx`请求消息，这是应用状态机更新的时机。
+- **`DeliverTx`**：在`BeginBlock`和`EndBlock`请求之间，tendermint会为区块中的每一个交易向`ABCI`应用 发出一个`DeliverTx`请求消息，这是应用状态机更新的时机。
 
 - **`Commit`**：作为执行交易的最后一步，tendermint会发送`Commit`请求，并在获取响应后持久化区块状态。
 
@@ -564,7 +564,7 @@ BeginBlock -> CheckTx -> DeliverTx -> EndBlock -> Commit
  
 
 ### 3.4 交易检查：CheckTx
-为了减轻共识环节的工作负担，对于通过rpc接口提交的交易，tendermint引入了 交易检查环节，只有检查成功的交易才能够进入交易池等待确认，否则直接拒绝：
+为了减轻共识环节的工作负担，对于通过rpc接口提交的交易，tendermint引入了交易检查环节，只有检查成功的交易才能够进入交易池等待确认，否则直接拒绝：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial9073.png)
 
@@ -579,7 +579,7 @@ func (app *EzApp) CheckTx(tx []byte) types.ResponseCheckTx{
 }
 ```
 
-CheckTx()方法返回的是一个ResponseCheckTx结构，其组成与ResponseDeliverTx 相同：
+`CheckTx()`方法返回的是一个`ResponseCheckTx`结构，其组成与`ResponseDeliverTx` 相同：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial9389.png)
 
@@ -668,7 +668,7 @@ func (app *CounterApp) InitChain(req types.RequestInitChain) types.ResponseInitC
 
 在上面的代码中我们直接在`InitChain()`实现中设定了技术初始值100，这当然是可以的，不过 更好的办法是借助于创世文件`genesis.json`，在该文件中声明应用状态的初始值。
 
-例如，下面展示了genesis.json中的内容：
+例如，下面展示了`genesis.json`中的内容：
 
 ```json
 {
@@ -680,8 +680,7 @@ func (app *CounterApp) InitChain(req types.RequestInitChain) types.ResponseInitC
 }
 ```
 
-
-app_state字段的内容将以原始字节码的形式在InitChain请求的AppStateBytes字段传入， 因此，我们改为如下的实现：
+`app_state`字段的内容将以原始字节码的形式在`InitChain`请求的`AppStateBytes`字段传入， 因此，我们改为如下的实现：
 
 ```go
 func (app *CounterApp) InitChain(req types.RequestInitChain) types.ResponseInitChain{
@@ -699,7 +698,7 @@ func (app *CounterApp) InitChain(req types.RequestInitChain) types.ResponseInitC
 - 重写`InitChain()`方法，使用`genesis.json`中的应用状态参数设置计数状态初值
 
 ### 3.7 应用状态查询：Query
-RPC客户端可以利用节点旳`abci_query`调用查询ABCI应用维护的状态，该调用允许在请求 中设定查询条件，以过滤潜在的查询结果：
+RPC客户端可以利用节点的`abci_query`调用查询ABCI应用维护的状态，该调用允许在请求 中设定查询条件，以过滤潜在的查询结果：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial11819.png)
 
@@ -760,7 +759,7 @@ type CounterApp struct {
 }
 ```
 
-我们在Commit()方法中递增Version（以便和区块高度保持一致），并记录状态历史：
+我们在`Commit()`方法中递增`Version`（以便和区块高度保持一致），并记录状态历史：
 
 ```go
 func (app *CounterApp) Commit() types.ResponseCommit{
@@ -770,7 +769,7 @@ func (app *CounterApp) Commit() types.ResponseCommit{
 }
 ```
 
-现在，我们可以根据RequestQuery中的Height值来返回对应版本的状态了，高度0意味着要 返回最新区块的状态：
+现在，我们可以根据`RequestQuery`中的`Height`值来返回对应版本的状态了，高度`0`意味着要 返回最新区块的状态：
 
 ```go
 func (app *CounterApp) Query(req types.RequestQuery) types.ResponseQuery {  
@@ -810,20 +809,20 @@ func (app *CounterApp) Query(req types.RequestQuery) types.ResponseQuery {
 
 你可以自己尝试一下，不出意外的话，还是会和重新启动之前一样，你得到的状态值 依然是8。
 
-这是因为当tendermint节点连接ABCI应用后，会有一个握手同步的处理，tendermint会 向ABCI应用发送Info消息获取应用状态的最后区块高度，如果ABCI应用返回的区块高度 小于tendermint节点旳最后区块高度，tendermint就会认为ABCI应用漏掉了这些区块并 进行重放：
+这是因为当tendermint节点连接ABCI应用后，会有一个握手同步的处理，tendermint会向`ABCI`应用发送`Info`消息获取应用状态的最后区块高度，如果`ABCI`应用返回的区块高度小于tendermint节点的最后区块高度，tendermint就会认为`ABCI`应用漏掉了这些区块并进行重放( block replay)：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial13771.png)
 
-显然，由于我们没有明确处理Info消息，因此握手时tendermint会认为我们的计数应用 的区块高度为0，所以它会重放所有的区块，这意味着当重放结束，我们的计数器值还是 会回到8。
+显然，由于我们没有明确处理`Info`消息，因此握手时tendermint会认为我们的计数应用的区块高度为0，所以它会重放所有的区块(所有交易都会被重新执行一遍)，这意味着当重放结束，我们的计数器值还是会回到8。 
 
-容易理解，我们不期望每次重新启动节点（及ABCI应用）都重放所有区块，那会非常耗时 并且体验很差。因此我们可以在Info()方法中返回状态机处理过的最后区块高度，你知道 它对应于我们的Version成员：
+> 注意: 如果使用了数据库做了持久化, 那么如果重放所有区块, 就会导致状态不对(例如: 账户的余额部队) 
+
+容易理解，我们不期望每次重新启动节点（及`ABCI`应用）都重放所有区块，那会非常耗时并且体验很差。因此我们可以在`Info()`方法中返回状态机处理过的最后区块高度，你知道它对应于我们的`Version`成员：
 
 
 ```go
 func (app *CounterApp) Info(req types.RequestInfo) types.ResponseInfo{
-
   return types.ResponseInfo{LastBlockHeight:app.Version}
-
 }
 ```
 
@@ -866,6 +865,8 @@ func (app *CounterApp) Info(req types.RequestInfo) types.ResponseInfo{
   return types.ResponseInfo{LastBlockHeight:app.Version,LastBlockAppHash:app.Hash }
 }
 ```
+
+> 注意区分 block hash  和  app hash .   
 
 参考教程和示例代码，编写abci应用完成以下任务：
 
@@ -1101,20 +1102,15 @@ fmt.Printf("encoded letter => %x\n",bz)
 
 ```go
 var received Letter
-
 err = json.Unmarshal(bz,&received)
-
 if err !=nil { panic( err)}
-
 fmt.Printf("decoded letter => %+v\n",received)
-
 ```
 
 然后就可以使用信件中发送方的公钥验证签名了：
 
 ```go
 valid := received.PubKey.VerifyBytes(received.Msg,received.Signature)
-
 fmt.Printf("validated => %t\n",valid)
 ```
 
@@ -1734,7 +1730,7 @@ avl树得名于发明者G. M. Adelson-Velsky和Evgenii Landis，它是一种 自
 
 - 19 == 19，定位成功
 
-平衡是指树中任一节点旳左右两棵子树的高度差不超过1。例如，上面的树就不是平衡的， 该数据集对应的平衡树如下图所示：
+平衡是指树中任一节点的左右两棵子树的高度差不超过1。例如，上面的树就不是平衡的， 该数据集对应的平衡树如下图所示：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial31203.png) 
 
@@ -1988,7 +1984,7 @@ func (app *AccountApp) Query(req types.RequestQuery) types.ResponseQuery{
 
 在之前的课程内容中，我们的关注点集中在单一节点上的状态机逻辑实现上，这是因为 状态机复制的问题，是由tendermint负责完成的：我们在任何一个节点提交的交易请求， tendermint可以透明地帮我们在多个节点间实现同步。
 
-在这一章，我们将通过前面已经学习过的简单的ABCI计数应用来学习如何部署多个tendermint节点， 并进一步理解tendermint共识的建立过程。为了简化操作，我们将首先了解如何将ABCI 应用与tendermint库集成为单一可执行文件，然后利用这个单一完整的程序来部署4个 节点旳区块链：
+在这一章，我们将通过前面已经学习过的简单的ABCI计数应用来学习如何部署多个tendermint节点， 并进一步理解tendermint共识的建立过程。为了简化操作，我们将首先了解如何将ABCI 应用与tendermint库集成为单一可执行文件，然后利用这个单一完整的程序来部署4个 节点的区块链：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial35742.png) 
 
@@ -2078,7 +2074,7 @@ func main(){
 
 ### 8.4 实现节点提供器
 
-与其他`cobra`命令不同，用于启动节点旳`node`子命令对应于一个`NewRunNodeCmd()`方法， 它是一个构建`cobra/Command`实例的工厂方法，需要传入一个`NodeProvider`类型的变量：
+与其他`cobra`命令不同，用于启动节点的`node`子命令对应于一个`NewRunNodeCmd()`方法， 它是一个构建`cobra/Command`实例的工厂方法，需要传入一个`NodeProvider`类型的变量：
 
  ![](./tendermint_tutorial.files/tendermint_tutorial37612.png)
 
@@ -2136,7 +2132,7 @@ Tendermint支持两种类型的节点：验证节点（Validator）和观察节�
 
 ![](./tendermint_tutorial.files/tendermint_tutorial38905.png) 
 
-第一个节点旳基本参数是：
+第一个节点的基本参数是：
 
 - P2P通信端口：26656
 - RPC服务端口：26657
@@ -2148,11 +2144,11 @@ Tendermint支持两种类型的节点：验证节点（Validator）和观察节�
 
 `~/repo/go/src/hubwiz.com/c8$ smr init --home n1`
 
-执行show_node_id子命令显示并记录第一个节点旳ID：
+执行show_node_id子命令显示并记录第一个节点的ID：
 
 `~/repo/go/src/hubwiz.com/c8$ smr show_node_id --home n1`
 
-输出结果为节点旳ID，我们后续会用到，请记下来（你的ID应该与此不同）：
+输出结果为节点的ID，我们后续会用到，请记下来（你的ID应该与此不同）：
 
 `fd8debec2b97adfa0f6e8bae939c22a69cda9741`
 
@@ -2191,7 +2187,7 @@ Tendermint支持两种类型的节点：验证节点（Validator）和观察节�
 
 ![](./tendermint_tutorial.files/tendermint_tutorial39656.png) 
 
-第二个节点旳基本参数是：
+第二个节点的基本参数是：
 
 - P2P通信端口：36656
 - RPC服务端口：36657
@@ -2203,11 +2199,11 @@ Tendermint支持两种类型的节点：验证节点（Validator）和观察节�
 
 `~/repo/go/src/hubwiz.com/c8$ smr init --home n2`
 
-由于这个节点是观察节点，因此我们可以直接使用验证节点旳创世文件：
+由于这个节点是观察节点，因此我们可以直接使用验证节点的创世文件：
 
 `~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n2/config/genesis.json`
 
-同时修改n2/config/config.toml，设置其rpc监听端口为36657，p2p监听端口为36656， 并使其主动连接第一个节点，其中fd8d...41为第一个节点旳ID（使用show_node_id 子命令获取）：
+同时修改n2/config/config.toml，设置其rpc监听端口为36657，p2p监听端口为36656， 并使其主动连接第一个节点，其中fd8d...41为第一个节点的ID（使用show_node_id 子命令获取）：
 
 ```
 [rpc]
@@ -2261,7 +2257,7 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
  ![](./tendermint_tutorial.files/tendermint_tutorial41187.png)
 
-第三个节点旳基本参数是：
+第三个节点的基本参数是：
 
 - P2P通信端口：46656
 - RPC服务端口：46657
@@ -2273,11 +2269,11 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 `~/repo/go/src/hubwiz.com/c8$ smr init --home n3`
 
-由于这个节点是验证节点，因此我们需要在节点一现有的创世文件中添加该节点 的priv_validator.json文件中的公钥和地址，其中每个验证节点旳power值用来 表征其代表的权益：
+由于这个节点是验证节点，因此我们需要在节点一现有的创世文件中添加该节点 的priv_validator.json文件中的公钥和地址，其中每个验证节点的power值用来 表征其代表的权益：
 
 ![](./tendermint_tutorial.files/tendermint_tutorial41420.png)
 
-在上面的配置中，由于每个节点旳power都是10，因此每个节点都有50%（10/(10+10)） 的机率出块。
+在上面的配置中，由于每个节点的power都是10，因此每个节点都有50%（10/(10+10)） 的机率出块。
 
 然后将新的创世文件分发给节点二和节点三：
 
@@ -2285,7 +2281,7 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 `~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n3/config/genesis.json`
 
-同时修改n3/config/config.toml，设置其rpc监听端口为46657，p2p监听端口为46656， 并使其主动连接第一个节点，其中fd8d...41为第一个节点旳ID（使用show_node_id 子命令获取）：
+同时修改n3/config/config.toml，设置其rpc监听端口为46657，p2p监听端口为46656， 并使其主动连接第一个节点，其中fd8d...41为第一个节点的ID（使用show_node_id 子命令获取）：
 
 ```
 [rpc]
@@ -2318,7 +2314,7 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 停机测试
 
-由于3f+1个验证节点中，才允许f个发生拜占庭故障，因此两个验证节点旳任一个 出现故障，整个集群都将停止共识。
+由于3f+1个验证节点中，才允许f个发生拜占庭故障，因此两个验证节点的任一个 出现故障，整个集群都将停止共识。
 
 首先在3#终端按ctrl+c停止smr的运行，然后在5#终端通过节点二提交交易：
 
@@ -2326,7 +2322,7 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 该命令会一直挂起直至超时，因为交易始终无法确认。
 
-但是观测节点旳停机不会影响共识的达成。
+但是观测节点的停机不会影响共识的达成。
 
 参考教程和示例代码，添加验证节点并进行实验
 
@@ -2339,7 +2335,7 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
  ![](./tendermint_tutorial.files/tendermint_tutorial42595.png)
 
-第四个节点旳基本参数是：
+第四个节点的基本参数是：
 
 - P2P通信端口：56656
 - RPC服务端口：56657
@@ -2359,7 +2355,7 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 `~/repo/go/src/hubwiz.com/c8$ cp n1/config/genesis.json n4/config/genesis.json`
 
-同时修改节点2/3/4的config/config.toml，设置其rpc监听端口分别为36657/46657/56657， p2p监听端口分别为36656/46656/56656，并使其主动连接第一个节点，其中fd8d...41为第一 个节点旳ID（使用show_node_id子命令获取）。以节点2为例：
+同时修改节点2/3/4的config/config.toml，设置其rpc监听端口分别为36657/46657/56657， p2p监听端口分别为36656/46656/56656，并使其主动连接第一个节点，其中fd8d...41为第一 个节点的ID（使用show_node_id子命令获取）。以节点2为例：
 
 ```
 [rpc]
@@ -2378,7 +2374,7 @@ persistent_peers = "fd8debec2b97adfa0f6e8bae939c22a69cda9741@127.0.0.1:26656"
 
 容错测试
 
-由于3f+1个验证节点中，允许f个发生拜占庭故障，因此我们的四个节点旳小集群， 允许任一个出现拜占庭错误。
+由于3f+1个验证节点中，允许f个发生拜占庭故障，因此我们的四个节点的小集群， 允许任一个出现拜占庭错误。
 
 首先在1#终端按ctrl+c停止smr的运行，然后在5#终端通过节点二提交交易：
 
