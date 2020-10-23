@@ -1,4 +1,19 @@
+> 原文链接: http://xc.hubwiz.com/course/5bdec63ac02e6b6a59171df3 
+>
+> 本文是根据原文整理修改而成, 仅用于学习交流, 不可用于商业用途.
+
+## 0 目录内容说明
+
+- doc/tendermint_tutorial 
+  - code : 教程原始示例代码
+  - tendermint_tutorial.docx : 教程原始文档
+- BlockchainNotesV2/tendermint
+  - mytokenapp : 本人根据示例代码所写的代码
+
+
+
 ## 1 概述
+
 ### 1.1 tendermint简介
 tendermint是一个开源的完整的区块链实现，可以用于公链或联盟链，其官方定位 是面向开发者的区块链共识引擎：
 ![](./tendermint_tutorial.files/tendermint_tutorial75.png)
@@ -55,7 +70,7 @@ tendermint的定位决定了在最终交付的节点软件分层中，应用程�
 
 在以太坊中，节点是一个整体，开发者提供的智能合约则运行在受限的虚拟机环境中；而在 tendermint中，并不存在虚拟机这一层，应用程序是一个标准的操作系统进程，不受任何 的限制与约束 —— 听起来这很危险，但当你考虑下使用tendermint的目的是构建专有的区块链 时，这种灵活性反而更有优势了。
 
-事实上，tendermint留下的应用层空间如此之大，以至于你完全可以在`ABCI`应用中实现一个 EVM，然后提供solidity合约开发能力，这就是超级账本的 Burrow 做的事情。
+事实上，tendermint留下的应用层空间如此之大，以至于你完全可以在`ABCI`应用中实现一个 EVM，然后提供solidity合约开发能力，这就是超级账本的 [Burrow](https://cn.hyperledger.org/projects/hyperledger-burrow) 做的事情。
 
 阅读教程，回答以下问题：
 
@@ -121,6 +136,24 @@ tendermint提供了一个预构建的同名可执行程序，我们将学习如�
 
  
 
+tendermint 安装
+
+> 参考官方文档: https://docs.tendermint.com/master/introduction/install.html
+
+```
+1.安装go环境 , 我的go版本是 go version go1.15.2 linux/amd64
+
+2.编译tendermint
+git clone https://github.com/tendermint/tendermint.git
+cd tendermint
+make tools
+make install     #安装在 $GOPATH/bin
+make build     #可执行文件在 ./build
+tendermint version    #我的tenderminet版本是: 0.33.8-1a8e42d4    2020-10
+```
+
+
+
 ### 2.2 节点初始化
 tendermint节点程序的行为非常依赖于配置文件，使用其`init`子命令 可以获得一组默认的初始化文件。 例如，在1#终端输入如下命令创建初始化文件：
 
@@ -128,7 +161,34 @@ tendermint节点程序的行为非常依赖于配置文件，使用其`init`子�
 
 `init`子命令将在`~/.tendermint`目录下创建两个子目录`data`和`config`，分别用于 保存区块链数据和配置文件。
 
-在`data`目录下将包含如下的数据文件，均为`leveldb`格式：
+```
+$ tree .
+.
+├── config
+│   ├── config.toml
+│   ├── genesis.json
+│   ├── node_key.json
+│   └── priv_validator_key.json
+└── data   
+    ├── priv_validator_state.json
+    ├── blockstore.db   
+    ├── cs.wal
+    ├── evidence.db
+    ├── state.db
+    └── tx_index.db
+```
+
+
+
+执行`init`命令后在`config`子目录下将包含如下的配置文件：
+
+- `config.toml`：节点软件配置文件
+- `node_key.json`：节点密钥文件，用于p2p通信加密
+- `priv_validator_key.json`：验证节点密钥文件，用于共识签名
+- `genesis.json`：创世文件
+- `addrbook.json`: 用于保存 p2p节点地址
+
+当节点启动之后, 在`data`目录下将包含如下的数据文件，均为`leveldb`格式：
 
 - `blockstore.db`：区块链数据库
 
@@ -136,19 +196,9 @@ tendermint节点程序的行为非常依赖于配置文件，使用其`init`子�
 
 - `state.db`：区块链状态数据
 
-- `tx_index.db`：交易索引数据，
+- `tx_index.db`：交易索引数据
 
-在`config`子目录下将包含如下的配置文件：
-
-- `config.toml`：节点软件配置文件
-
-- `node_key.json`：节点密钥文件，用于p2p通信加密
-
-- `priv_validator.json`：验证节点密钥文件，用于共识签名
-
-- `genesis.json`：创世文件
-
-节点配置文件config.toml用来设置节点软件的运行参数，例如RPC监听端口等。 我们修改`consensus.create_empty_blocks`为`false`，即不出无交易的空块：
+节点配置文件`config.toml`用来设置节点软件的运行参数，例如RPC监听端口等。 我们修改`consensus.create_empty_blocks`为`false`，即不出无交易的空块：
 
 ```
 [consensus]
@@ -166,7 +216,7 @@ create_empty_blocks = false
 
 参考教程，完成以下任务：
 
-- 执行init子命令初始化节点配置
+- 执行`init`子命令初始化节点配置
 
 - 修改`config.toml`中的参数，使节点不主动构造无交易空块
 
@@ -179,11 +229,11 @@ create_empty_blocks = false
 
 可以看到tendermint在反复尝试abci应用的默认监听地址`tcp://127.0.0.1:26658`：
 
- ![](./tendermint_tutorial.files/tendermint_tutorial4207.png)
+ ![](./tendermint_tutorial.files/miniapp_1.png)
 
 显然，tendermint要求一个配套的abci应用才能正常工作，我们将在下一节解决这个 问题。
 
-在目前这种状态下，如果需要退出tendermint的执行，可以切换到2#终端，使用pkill 命令终止其运行：
+在目前这种状态下，如果需要退出tendermint的执行，可以切换到2#终端，使用`pkill` 命令终止其运行：
 
 `~$ pkill -9 tendermint`
 
@@ -226,11 +276,7 @@ func main(){
 
 
 
-将上述代码保存为`~/repo/go/src/diy/c2/mini-app.go`，然后在2#终端 进入c2目录并启动该应用：
-
-`~$ cd ~/repo/go/src/diy/c2`
-
-`~/repo/go/src/diy/c2$ go run mini-app.go`
+`$ go run miniapp.go`
 
 现在回到1#终端重新启动tendermint节点：
 
@@ -238,7 +284,7 @@ func main(){
 
 你可以看到这次tendermint节点启动成功了：
 
- 
+![](./tendermint_tutorial.files/miniapp_2.png) 
 
 ### 2.5 RPC开发接口
 在一个典型的（非理想化的）去中心化应用的开发中，除了需要开发链上应用 （例如ABCI应用或者以太坊中的智能合约），往往还需要开发传统的网页应用 /桌面应用/手机应用，以方便那些不可能自己部署节点旳用户：
@@ -249,7 +295,37 @@ func main(){
 
 首先确保1#终端和2#终端分别运行着tendermint和abci应用，然后我们切换到3# 终端，输入如下命令提交交易0x68656c6c6f —— 对应于字符串hello的16进制表示：
 
-`~$ curl http://localhost:26657/broadcast_tx_commit?tx=0x68656c6c6f`
+```
+yqq@ubuntu:miniapp$ curl http://localhost:26657/broadcast_tx_commit?tx=0x68656c6c6f
+{
+  "jsonrpc": "2.0",
+  "id": -1,
+  "result": {
+    "check_tx": {
+      "code": 0,
+      "data": null,
+      "log": "",
+      "info": "",
+      "gasWanted": "0",
+      "gasUsed": "0",
+      "events": [],
+      "codespace": ""
+    },
+    "deliver_tx": {
+      "code": 0,
+      "data": null,
+      "log": "",
+      "info": "",
+      "gasWanted": "0",
+      "gasUsed": "0",
+      "events": [],
+      "codespace": ""
+    },
+    "hash": "2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824",
+    "height": "3"
+  }
+
+```
 
 响应结果类似于下图，其中check_tx和deliver_tx来自于abci应用，而交易哈希 和区块高度则由tendermint节点内部处理得出：
 
@@ -259,7 +335,78 @@ func main(){
 
 让我们看一下这个区块的内容，在3#终端输入如下命令：
 
-`~$ curl http://localhost:26657/block?height=2`
+```
+yqq@ubuntu:miniapp$ curl http://localhost:26657/block?height=3
+{
+  "jsonrpc": "2.0",
+  "id": -1,
+  "result": {
+    "block_id": {
+      "hash": "11F700F7511BCA20C6E5512C23C15DF208A7BD2A7D6EFAB6204CC13F590F4756",
+      "parts": {
+        "total": "1",
+        "hash": "BC011D26EFC1393272161589BD06073CABECB2BEEF8ADD50A8F0C7F4302B2310"
+      }
+    },
+    "block": {
+      "header": {
+        "version": {
+          "block": "10",
+          "app": "0"
+        },
+        "chain_id": "test-chain-7rOpch",
+        "height": "3",
+        "time": "2020-10-23T06:33:34.652743488Z",
+        "last_block_id": {
+          "hash": "CBAC1F877D9E1A506B38D27C543B7FD4D83B098AB91E557EEAAAB64FB5241E6D",
+          "parts": {
+            "total": "1",
+            "hash": "3F5D9A7428F0B3F0664DBA852C81759EAB9E6AFDD0B2832FA40A613174EB28EB"
+          }
+        },
+        "last_commit_hash": "8B315AE8182B051ABD6536F616FDB6F89DAB4D311E1228B9BC4E8E0C09D82FED",
+        "data_hash": "07636CA803346B2298B02D2C35146D6F18FB848E06B873D3367A51FA4C89B8A1",
+        "validators_hash": "8437952A9F8B81FAB1777C6C912735A2478FB4F836D84AF0B00F5384C8FD9A1C",
+        "next_validators_hash": "8437952A9F8B81FAB1777C6C912735A2478FB4F836D84AF0B00F5384C8FD9A1C",
+        "consensus_hash": "048091BC7DDC283F77BFBF91D73C44DA58C3DF8A9CBC867405D8B7F3DAADA22F",
+        "app_hash": "",
+        "last_results_hash": "",
+        "evidence_hash": "",
+        "proposer_address": "81E78A08417B855F1BDE8239748C8C2CD0A30C99"
+      },
+      "data": {
+        "txs": [
+          "aGVsbG8="   //交易内容
+        ]
+      },
+      "evidence": {
+        "evidence": null
+      },
+      "last_commit": {
+        "height": "2",
+        "round": "0",
+        "block_id": {
+          "hash": "CBAC1F877D9E1A506B38D27C543B7FD4D83B098AB91E557EEAAAB64FB5241E6D",
+          "parts": {
+            "total": "1",
+            "hash": "3F5D9A7428F0B3F0664DBA852C81759EAB9E6AFDD0B2832FA40A613174EB28EB"
+          }
+        },
+        "signatures": [
+          {
+            "block_id_flag": 2,
+            "validator_address": "81E78A08417B855F1BDE8239748C8C2CD0A30C99",
+            "timestamp": "2020-10-23T06:33:34.652743488Z",
+            "signature": "WuZbHa2V76UOlcEaPvWgg0sILzNOal2++epL2nmQyCqnaAzOD7xdpV0G/stkosu5WZHwqReTJjbwQli1PvZdDA=="
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+
 
 注意结果中的Txs字段，它包含了该区块中所有交易的base64编码：
 
