@@ -14,9 +14,13 @@ reset_all:
 	@rm -rf  bin/n1/account.db
 	@rm -rf  bin/n2/account.db
 	@rm -rf  bin/n3/account.db
+	@rm -rf  bin/n4/account.db
+	@rm -rf  bin/n5/account.db
 	@cd ./bin/n1 && ./mytokenapp unsafe_reset_all && cd ..
 	@cd ./bin/n2 && ./mytokenapp unsafe_reset_all && cd ..
 	@cd ./bin/n3 && ./mytokenapp unsafe_reset_all && cd ..
+	@cd ./bin/n4 && ./mytokenapp unsafe_reset_all && cd ..
+	@cd ./bin/n5 && ./mytokenapp unsafe_reset_all && cd ..
 
 build_client: clean_client
 	@go build -o ./bin/client client.go

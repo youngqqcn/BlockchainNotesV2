@@ -1,0 +1,25 @@
+{
+  "genesis_time": "2018-10-31T02:58:41.430895735Z",
+  "chain_id": "test-chain-lEMLqn",
+  "consensus_params": {
+    "block_size_params": {
+      "max_bytes": "22020096",
+      "max_gas": "-1"
+    },
+    "evidence_params": {
+      "max_age": "100000"
+    }
+  },
+  "validators": [
+    {
+      "address": "ACCAEDB6690C4F65CD794E15F3A00D7287513C26",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "dRXABWR+WMVivW43yujO0oUipLov0MrNiF70NN95AsM="
+      },
+      "power": "10",
+      "name": ""
+    }
+  ],
+  "app_hash": ""
+}

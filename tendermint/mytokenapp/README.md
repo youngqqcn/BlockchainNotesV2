@@ -73,8 +73,6 @@ address : 365EA5222D2F08A8A1EBF992B0628B1459527400
 
 
 
-
-
 # 多节点
 
 按照教程的方式改, 一直报错, 需要修改每个节点的  config.toml 
@@ -83,4 +81,12 @@ address : 365EA5222D2F08A8A1EBF992B0628B1459527400
 allow_duplicate_ip = true
 addr_book_strict = false
 ```
+
+
+
+已有三个验证节点, 新增(不是从高度0开始)一个新的验证节点时, 总是报错:
+> https://github.com/tendermint/tendermint/issues/1620
+
+从0开始有四个验证节点,就没有问题
+
 

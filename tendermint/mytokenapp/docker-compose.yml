@@ -1,0 +1,26 @@
+
+version: "3"
+
+
+services:
+  node1:
+    container_name: node1
+    build: .
+    ports:
+      - "26656-26657:26656-26657"
+#    volumes:
+#      - ./bin/:/root
+#    networks:
+#      localnet:
+#        ipv4_address: 192.168.1.10
+
+
+#
+#networks:
+#  localnet:
+#    driver: brige
+#    ipam:
+#      driver: default
+#      config:
+#        subnet: 192.168.1.0/24
+#
