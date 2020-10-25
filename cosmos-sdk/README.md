@@ -653,6 +653,494 @@ https://github.com/cosmos/sdk-tutorials/blob/86a27321cf89cc637581762e953d0c07f8c
 [appname] tx [command] [args] [flags]
 ```
 
+此命令将自动创建事务，使用帐户的私钥对其进行签名，并将其广播到指定的对等节点。
+
+有几个用于创建事务的必需和可选标志。 `--from`标志指定交易源自哪个帐户。例如，如果交易是发送代币，则将从指定的发件人地址扣除资产。
+
+
+### Gas and Fees
+
+此外，用户可以使用几个标志来表明他们愿意支付多少手续费：
+
+- `--gas`是指Tx消耗多少gas，代表了计算资源。 Gas取决于交易，在执行之前无法精确计算，但可以通过将`auto`用作`--gas`的值来进行估算。
+- `--gas-adjustment`（可选）可用于按比例放大gas，以避免过低估计。例如，用户可以将其gas调节值指定为1.5，以使用估算gas的1.5倍。
+- `--gas-prices`指定用户愿意为每单位gas支付多少费用，可以是一种或多种代币。例如，`--gas-prices = 0.025uatom，0.025upho`表示用户愿意为每单位gas支付`0.025uatom`和`0.025upho`。
+- `--fees`指定用户愿意支付的总费用。
+- `--timeout-height`指定块超时高度，以防止tx提交超过特定高度。
+
+
+
+所支付费用的最终价值等于天然气乘以天然气价格。换句话说，费用等于ceil（gas * gasPrices）。因此，由于可以使用汽油价格来计算费用，反之亦然，因此用户仅指定两者之一。
+
+后来，验证者通过将给定或计算出的gas价格与其当地的最低gas价格进行比较，来决定是否将交易包括在其区块中。如果Tx的gas价格不够高，Tx将被拒绝，因此，用户被鼓励支付更多费用。
+
+
+
+### CLI Example
+
+
+应用程序应用程序的用户可以在其CLI中输入以下命令，以生成一个交易，以将1000uatom从`senderAddress`发送到`receiveAddress`。它指定了他们愿意支付的gas量：自动估算增加了1.5倍，每单位gas的 gas price为0.025uatom。
+
+```
+appd tx send <recipientAddress> 1000uatom --from <senderAddress> --gas auto --gas-adjustment 1.5 --gas-prices 0.025uatom
+```
+
+### Other Transaction Creation Methods
+
+命令行是与应用程序交互的一种简便方法，但是Tx也可以使用REST界面或应用程序开发人员定义的某些其他入口点创建。从用户的角度来看，交互取决于他们正在使用的Web界面或钱包（例如，使用Lunie.io创建Tx并使用Ledger Nano S对其进行签名）。
+
+
+
+## Addition to Mempool
+
+
+每个接收到Tx的全节点（正在运行的Tendermint）将ABCI消息`CheckTx`发送到应用程序层以检查有效性，并接收`abci.ResponseCheckTx`。如果Tx通过了检查，它将保存在节点的Mempool（每个节点唯一的内存交易池）中，等待包含在块中, 诚实的节点发现Tx无效时将其丢弃。在达成共识之前，节点会不断检查传入的事务并将其转发到其他节点。
+
+
+### Types of Checks
+
+全节点在`CheckTx`期间对Tx执行无状态检查，然后进行有状态检查，目的是尽早识别并拒绝无效交易，以避免浪费计算资源。
+
+**无状态检查**不需要节点访问状态-轻客户端或脱机节点可以执行状态-因此计算开销较小。无状态检查包括确保地址不为空，强制使用非负数以及定义中指定的其他逻辑。
+
+**有状态检查**根据提交的状态验证事务和消息。例如，检查相关值是否存在并能够进行交易，地址是否有足够的资金，发件人是否被授权或拥有正确的所有权进行交易。在任何给定的时刻，全节点通常具有用于不同目的的应用程序内部状态的多个版本。例如，节点将在验证交易的过程中执行状态更改，但仍需要最后提交的状态的副本才能回答查询-它们不应使用未提交的更改来响应状态。
+
+
+为了验证`Tx`，全节点调用`CheckTx`，其中包括无状态检查和有状态检查。进一步的验证将在`DeliverTx`阶段稍后进行。 `CheckTx`经历了几个步骤，从解码`Tx`开始。
+
+
+### Decoding
+
+当应用程序从底层共识引擎（例如Tendermint）接收到`Tx`时，它仍处于其已编码的`[]byte`形式，需要进行解组才能进行处理。然后，调用`runTx`函数以在`runTxModeCheck`模式下运行，这意味着该函数将运行所有检查，但在执行消息和写入状态更改之前退出。
+
+### ValidateBasic
+
+从`Tx`和`ValidateBasic`中提取消息，并为每个消息运行`ValidateBasic`（由模块开发人员实现的Msg接口的方法）。它应包括基本的*无状态*完整性检查。例如，如果消息是将硬币从一个地址发送到另一个地址，则`ValidateBasic`可能会检查非空地址和非负硬币金额，但不需要了解状态，例如地址的帐户余额。
+
+
+
+#### AnteHandler
+
+运行`AnteHandler`，这在技术上是可选的，但应为每个应用程序定义。创建内部状态`checkState`的深拷贝副本，并且定义的`AnteHandler`执行为事务类型指定的有限检查。使用状态副本允许处理程序在不修改最后提交状态的情况下对Tx进行有状态检查，如果执行失败，则恢复为原始状态。
+
+例如，`auth`模块`AnteHandler`检查并增加序列号，检查签名和帐号，并从事务的第一个签名者中扣除费用-所有状态更改都使用`checkState`进行。
+
+
+
+#### Gas
+
+初始化上下文，该上下文使`GasMeter`能够跟踪执行Tx期间使用了多少gas。用户为Tx提供的gas量称为`GasWanted`。如果使用`GasConsumed`，则执行期间消耗的gas量将超过GasWanted，执行将​​停止，并且不会提交对状态的缓存副本所做的更改。否则，`CheckTx`将`GasUsed`设置为等于`GasConsumed`，并在结果中返回它。在计算了gas和费用的价值之后，验证者节点检查用户指定的gas价格是否小于其本地定义的`min-gas-prices`。
+
+
+
+#### Discard or Addition to Mempool
+
+如果在`CheckTx`期间的任何时候`Tx`失败，它将被丢弃并且事务生命周期在那里结束。否则，如果它成功通过`CheckTx`，默认协议是将其中继到对等节点并将其添加到`Mempool`，以便Tx成为要包含在下一个块中的候选对象。
+
+内存池用于跟踪所有全节点可见的事务。全节点保留他们最近看到的`mempool.cache_size`事务的内存池缓存，作为防止重放攻击的第一道防线。理想情况下，`mempool.cache_size`足够大，可以包含整个内存池中的所有事务。如果内存池缓存太小而无法跟踪所有事务，则CheckTx负责识别和拒绝重播的事务。
+
+
+当前现有的预防措施包括费用和`sequence`（nonce）计数器，以区分重播交易与相同但有效的交易。如果攻击者试图用很多Tx副本对节点进行垃圾邮件处理，则保留内存池缓存的全节点将拒绝相同的副本，而不是对所有副本都运行`CheckTx`。即使副本的序列号增加了，攻击者也不必支付费用。
+
+验证节点与全节点一样，保留一个内存池以防止重播攻击，但它也用作未确认事务池以准备块包含.请注意，即使Tx在此阶段通过了所有检查，以后仍然有可能被发现无效，因为`CheckTx`不能完全验证事务（即它实际上没有执行消息）。
+
+
+
+#### Inclusion in a Block
+
+共识是验证者节点就接受哪些交易达成协议的过程，它是轮流进行的。每个回合都始于提议者创建一个最近交易的块，并以具有投票权的特殊全节点（负责共识）进行验证而结束， 通过投票来解决是否接受该块, 如果不接收则使用`nil`块。验证节点执行共识算法（例如Tendermint BFT），使用对应用程序的ABCI请求来对交易进行确认，以达成此协议。
+
+共识的第一步是区块提案(block proposal)。共识算法从验证者中选择一个提议者来创建和提议一个块-为了将Tx包括在内，它必须位于该提议者的内存池中。
+
+
+
+#### State Changes
+
+共识的下一步是执行交易以完全验证它们。从正确的提议者收到阻止提议的所有全节点都通过调用ABCI函数`BeginBlock`，每个事务的`DeliverTx`和`EndBlock`来执行交易。当每个全节点在本地运行所有内容时，此过程将产生一个明确的结果，因为消息的状态转换是确定性的，并且交易在提案中明确指定了顺序。
+
+```
+		-----------------------
+		|Receive Block Proposal|
+		-----------------------
+		          |
+			  v
+		-----------------------
+		| BeginBlock	      |
+		-----------------------
+		          |
+			  v
+		-----------------------
+		| DeliverTx(tx0)      |
+		| DeliverTx(tx1)      |
+		| DeliverTx(tx2)      |
+		| DeliverTx(tx3)      |
+		|	.	      |
+		|	.	      |
+		|	.	      |
+		-----------------------
+		          |
+			  v
+		-----------------------
+		| EndBlock	      |
+		-----------------------
+		          |
+			  v
+		-----------------------
+		| Consensus	      |
+		-----------------------
+		          |
+			  v
+		-----------------------
+		| Commit	      |
+		-----------------------
+```
+
+#### DeliverTx
+
+`baseapp`中定义的`DeliverTx` ABCI函数完成大部分状态转换：按共识期间提交的顺序，按顺序对块中的每个事务运行该状态转换。在后台，`DeliverTx`与`CheckTx`几乎相同，但是在交付模式而不是检查模式下调用`runTx`函数。全节点不使用其`checkState`，而是使用`liverState`:
+
+
+- **Decoding**：由于`DeliverTx`是ABCI调用，因此以编码的`[]byte`形式接收`Tx`。
+- **Check**：全节点再次调用`validateBasicMsgs`和`AnteHandler`。之所以进行第二次检查，是因为在添加`Mempool`阶段他们可能没有看到相同的交易并且恶意的提议者可能包含无效的提议者。此处的一个区别是`AnteHandler`不会将汽油价格与节点的最低汽油价格进行比较，因为该值是每个节点本地配置的-跨节点的不同值会产生不确定的结果。
+
+- **Route和Handler**：当CheckTx退出时，`DeliverTx`继续运行`runMsgs`以完全执行事务中的每个`Msg`。由于事务可能具有来自不同模块的消息，因此`baseapp`需要知道哪个模块可以找到适当的处理程序。因此，通过模块管理器(module manager)调用路由功能以检索路由名称并在模块内找到handler。
+- **Handler**: 该handler是`AnteHandler`的上一个步骤，它负责执行Tx中的每个消息，并将状态转换保留在`deliveryTxState`中。它在Msg的模块内定义，并写入模块内的适当存储区。
+- **Gas** : 在发送Tx时，使用`GasMeter`来跟踪正在使用的气体量。如果执行完成，则设置`GasUsed`并将其返回到`abci.ResponseDeliverTx`中。如果由于`BlockGasMeter`或`GasMeter`已用完或其他原因而导致执行停止，则最后推迟的功能将相应地导致error或panic。
+
+如果由于Tx无效或GasMeter耗尽导致任何失败的状态更改，事务处理将终止并且所有状态更改都将恢复。区块提案中的无效交易会导致验证者节点拒绝该区块并投票给一个nil区块。
+
+
+#### Commit
+
+最后一步是让节点提交块和状态更改。验证器节点执行执行状态转换的上一步，以验证事务，然后对块进行签名以确认它。不是验证者的完整节点不会参与共识-即他们无法投票-但会听取投票以了解是否应提交状态更改。
+
+
+当他们收到足够的验证者票数（2/3 +的预提交权，由投票权加权）时，完整的节点将提交一个新块以添加到区块链中，并在应用程序层中完成状态转换。生成一个新的状态根，以用作状态转换的Merkle证明。应用程序使用从`Baseapp`继承的`Commit` ABCI方法；它通过将`deliverState`写入应用程序的内部状态来同步所有状态转换。提交状态更改后，`checkState`将从最近提交的状态重新开始，然后`deliverState`重置为nil，以便保持一致并反映更改。
+
+请注意，并非所有区块都具有相同数量的交易，并且共识可能会导致无区块或根本没有区块。在公共区块链网络中，验证者也有可能是拜占庭式或恶意的，这可能会阻止Tx提交到区块链中。可能的恶意行为包括：提议者决定通过从区块中排除Tx或验证节点恶意拒绝对区块进行投票。
+
+至此，Tx的事务生命周期结束了：节点已验证其有效性，并通过执行其状态更改来交付它，并提交了这些更改。 Tx本身以`[]byte`形式存储在一个块中，并附加到区块链中。
+
+
+
+## Accounts
+> https://github.com/cosmos/cosmos-sdk/blob/master/docs/basics/accounts.md
+
+
+本文档描述了Cosmos SDK的内置帐户系统。
+
+
+### Account Definition
+
+在Cosmos SDK中，一个帐户指定一对公共密钥PubKey和私有密钥PrivKey。可以派生PubKey来生成各种地址，这些地址用于标识应用程序中的用户（包括其他各方）。地址也与消息相关联，以标识消息的发送者。 PrivKey用于生成数字签名，以证明与PrivKey关联的地址已批准给定消息。
+
+为了派生PubKeys和PrivKeys，Cosmos SDK使用了一个称为BIP32的标准。该标准定义了如何构建高清钱包，其中钱包是一组帐户。每个帐户的核心都有一个种子，该种子采用12或24个单词的助记符形式。从该助记符可以使用单向加密功能派生任意数量的PrivKey。然后，可以从PrivKey派生PubKey。自然地，助记符是最敏感的信息，因为如果保留助记符，则始终可以重新生成私钥。
+
+
+```
+
+     Account 0                         Account 1                         Account 2
+
++------------------+              +------------------+               +------------------+
+|                  |              |                  |               |                  |
+|    Address 0     |              |    Address 1     |               |    Address 2     |
+|        ^         |              |        ^         |               |        ^         |
+|        |         |              |        |         |               |        |         |
+|        |         |              |        |         |               |        |         |
+|        |         |              |        |         |               |        |         |
+|        +         |              |        +         |               |        +         |
+|  Public key 0    |              |  Public key 1    |               |  Public key 2    |
+|        ^         |              |        ^         |               |        ^         |
+|        |         |              |        |         |               |        |         |
+|        |         |              |        |         |               |        |         |
+|        |         |              |        |         |               |        |         |
+|        +         |              |        +         |               |        +         |
+|  Private key 0   |              |  Private key 1   |               |  Private key 2   |
+|        ^         |              |        ^         |               |        ^         |
++------------------+              +------------------+               +------------------+
+         |                                 |                                  |
+         |                                 |                                  |
+         |                                 |                                  |
+         +--------------------------------------------------------------------+
+                                           |
+                                           |
+                                 +---------+---------+
+                                 |                   |
+                                 |  Master PrivKey   |
+                                 |                   |
+                                 +-------------------+
+                                           |
+                                           |
+                                 +---------+---------+
+                                 |                   |
+                                 |  Mnemonic (Seed)  |
+                                 |                   |
+                                 +-------------------+
+
+```
+
+
+在Cosmos SDK中，帐户通过称为`Keyring`的对象进行存储和管理。
+
+
+### Keyring
+
+Keyring是存储和管理帐户的对象。在Cosmos SDK中，Keyring实现遵循Keyring接口：
+
+https://github.com/cosmos/cosmos-sdk/blob/d9175200920e96bfa4182b5c8bc46d91b17a28a1/crypto/keyring/keyring.go#L50-L88
+
+
+`Keyring`的默认实现来自第三方`99designs/keyring`库。
+
+
+有关`Keyring`方法的一些注意事项：
+
+- `Sign(uid string, msg []byte) ([]byte, tmcrypto.PubKey, error)`严格处理消息字节的签名。应该预先进行一些准备工作，以准备消息并将其编码为规范的`[]byte`形式，这是通过`GetSignBytes`方法完成的。请参阅`x/bank`模块中的消息准备示例。请注意，默认情况下，SDK中未实现签名验证。它被推迟到`anteHandler`。https://github.com/cosmos/cosmos-sdk/blob/d9175200920e96bfa4182b5c8bc46d91b17a28a1/x/bank/types/msgs.go#L51-L54
+
+
+- `NewAccount(uid, mnemonic, bip39Passwd, hdPath string, algo SignatureAlgo) (Info, error)` 创建一个基于bip44路径的新帐户，并将其保留在磁盘上（请注意，PrivKey在保留之前会先用密码短语加密，再也不会未加密存储）。在此方法的上下文中，帐户和地址参数指的是用于从助记符派生PrivKey和PubKey的BIP44派生路径的段（例如0、1、2 ...）（请注意，给定相同的助记符）和帐户，将会生成相同的PrivKey，并指定相同的帐户和地址，也会生成相同的PubKey和地址）。最后，请注意，NewAccount方法使用最后一个参数算法中指定的算法派生密钥和地址。目前，SDK支持两种公钥算法:
+  - `secp256k1`, SDK的实现在 [`crypto/keys/secp256k1`](https://github.com/cosmos/cosmos-sdk/blob/d9175200920e96bfa4182b5c8bc46d91b17a28a1/crypto/keys/secp256k1/secp256k1.go)
+  - `ed25519`, SDK的实现在 [`crypto/keys/ed25519`](https://github.com/cosmos/cosmos-sdk/blob/d9175200920e96bfa4182b5c8bc46d91b17a28a1/crypto/keys/ed25519/ed25519.go)
+
+
+
+- `ExportPrivKeyArmor(uid, encryptPassphrase string) (armor string, err error)`  使用给定的密码，以ASCII-armored加密格式导出私钥。你也可以使用`ImportPrivKey(uid，armour，passphrase string)`函数将其再次导入到`Keyring`中，或者使用`UnarmorDecryptPrivKey(armorStr string, passphrase string)`函数将其解密为原始私钥。
+
+
+### Addresses and PubKeys
+
+`Address`和`PubKeys`都是标识应用程序中参与者的公共信息。 Cosmos SDK默认提供三种主要的地址/公钥类型：
+
+- 帐户的地址和密钥，用于标识用户（例如消息的发送方）。它们是使用secp256k1曲线得出的。
+- 验证节点操作员的地址和密钥，用于标识验证程序的操作员。它们是使用secp256k1曲线得出的。
+- 共识节点的地址和密钥，标识参与共识的验证者节点。它们是使用ed25519曲线得出的。
+
+
+| |	Address bech32 Prefix	 | Pubkey bech32 Prefix	|Curve|	Address byte length	| Pubkey byte length|
+| --|	---	 | ---|---|----	| ----|
+|Accounts|	cosmos|	cosmospub	|secp256k1|	20|	33|
+|Validator Operator|	cosmosvaloper|	cosmosvaloperpub|	secp256k1	|20	|33|
+|Consensus Nodes|	cosmosvalcons|	cosmosvalconspub|	ed25519|	20| 32|
+
+
+### PubKeys
+
+Cosmos SDK中使用的PubKey是Protobuf消息，并继承了Tendermint的加密软件包中定义的Pubkey接口：
+
+https://github.com/cosmos/cosmos-sdk/blob/d9175200920e96bfa4182b5c8bc46d91b17a28a1/crypto/types/types.go#L8-L13
+
+https://github.com/tendermint/tendermint/blob/01c32c62e8840d812359c9e87e9c575aa67acb09/crypto/crypto.go#L22-L28
+
+```go
+// PubKey interface extends proto.Message
+// and tendermint crypto.PubKey
+type PubKey interface {
+	proto.Message
+	tmcrypto.PubKey
+}
+```
+
+```go
+type PubKey interface {
+	Address() Address
+	Bytes() []byte
+	VerifySignature(msg []byte, sig []byte) bool
+	Equals(PubKey) bool
+	Type() string
+}
+
+```
+
+
+在这两种情况下，实际密钥（作为原始字节）都是pubkey的压缩形式。如果y坐标在与x坐标相关联的两个词的字典上最大，则第一个字节为0x02字节。否则，第一个字节为0x03。该前缀后跟x坐标。
+
+
+请注意，在Cosmos SDK中，发布密钥不会以其原始字节形式进行操作。而是使用`Amino`和`bech32`将它们编码为字符串。在SDK中，方法是先在原始Pubkey（应用了amino编码）上调用`Bytes()`方法，然后再调用`bech32`的`ConvertAndEncode`方法。
+
+
+https://github.com/cosmos/cosmos-sdk/blob/d9175200920e96bfa4182b5c8bc46d91b17a28a1/types/address.go#L579-L729
+
+
+
+### Addresses
+
+Cosmos SDK默认提供三种地址类型：
+
+
+- `AccAddress`: 帐户的地址
+- `ValAddress`: 验证程序运算符的地址
+- `ConsAddress`: 验证者节点的地址
+
+这些地址类型均是长度为20的十六进制编码`[]byte`数组的别名。这是从Pubkey pub获取地址aa的标准方法：
+
+```go
+aa := sdk.AccAddress(pub.Address().Bytes())
+```
+
+这些地址实现了Address接口：
+
++++ https://github.com/cosmos/cosmos-sdk/blob/d9175200920e96bfa4182b5c8bc46d91b17a28a1/types/address.go#L73-L82
+
+
+值得注意的是，`Marshal()`和`Bytes()`方法都返回相同的原始`[]byte`形式的地址，前者是Protobuf兼容性所必需的。另外，`String()`方法用于返回地址的bech32编码形式，该形式应该是最终用户使用的唯一地址格式。这是一个例子：
+
+https://github.com/cosmos/cosmos-sdk/blob/d9175200920e96bfa4182b5c8bc46d91b17a28a1/types/address.go#L232-L246
+
+
+```go
+// String implements the Stringer interface.
+func (aa AccAddress) String() string {
+	if aa.Empty() {
+		return ""
+	}
+
+	bech32PrefixAccAddr := GetConfig().GetBech32AccountAddrPrefix()
+
+	bech32Addr, err := bech32.ConvertAndEncode(bech32PrefixAccAddr, aa.Bytes())
+	if err != nil {
+		panic(err)
+	}
+
+	return bech32Addr
+}
+```
+
+## Gas and Fees
+
+> https://github.com/cosmos/cosmos-sdk/blob/master/docs/basics/gas-fees.md
+
+本文档介绍了Cosmos SDK应用程序中处理gas和手续费的默认策略。
+
+
+### Introduction to Gas and Fees
+
+在Cosmos SDK中，gas是一种特殊的单位，用于跟踪执行期间的资源消耗。通常，每当对存储进行读写操作时都会消耗gas，但是如果需要执行昂贵的计算，则也会消耗气体。它有两个主要目的：
+
+- 确保块不会消耗太多资源，并且将其完成。默认情况下，这是在SDK中通过`block gas meter` 实现的。
+- 防止来自用户的垃圾信息和滥用。为此，通常对消息执行过程中消耗的gas定价，从而产生一定的费用（手续费=gas * gasprice）。手续费通常必须由消息的发送方支付。请注意，默认情况下，SDK不会强制执行`gas`定价，因为可能还有其他方法可以防止垃圾消息（例如带宽方案）。尽管如此，大多数应用程序仍将实施收费机制以防止垃圾消息。这是通`AnteHandler`完成的。
+
+
+
+### Gas Meter
+
+在Cosmos SDK中，`gas`是`uint64`的简单别名，由称为*gas meter* 的对象管理。煤气表实现了`GasMeter`接口:
+
+```go
+// GasMeter interface to track gas consumption
+type GasMeter interface {
+	GasConsumed() Gas
+	GasConsumedToLimit() Gas
+	Limit() Gas
+	ConsumeGas(amount Gas, descriptor string)
+	IsPastLimit() bool
+	IsOutOfGas() bool
+}
+
+```
+
+- `GasConsumed()`返回gas meter实例消耗的gas量。
+- `GasConsumedToLimit()`返回gas meter实例消耗的gas量，如果达到限制则返回限制。
+- `Limit() `返回gas meter 实例的限制。如果gas meter是无限的，则为0。
+- `ConsumeGas(amount Gas, descriptor string)`: 消耗所提供的gas量。如果gas超出限制，它将panic,带上消息`descriptor`。如果gas meter表不是无限的，则如果消耗的gas超过限制，它会panic。
+- `IsPastLimit()`: 如果gas meter实例消耗的gas量严格超过限制，则返回true，否则返回false。
+- `IsOutOfGas()`: 如果gas meter实例消耗的gas量大于或等于限制，则返回true，否则返回false。
+
+
+gas meter通常保存在ctx中，用以下方式完成gas消耗：
+
+```go
+ctx.GasMeter().ConsumeGas(amount, "description")
+```
+默认情况下，Cosmos SDK使用两种不同的gas meter，即 main gas meter 和 block gas meter。
+
+
+#### Main Gas Meter
+
+`ctx.GasMeter()`是应用程序的主 gas meter. 主gas meter通过`setDeliverState`在`BeginBlock`中初始化，然后在导致状态转换的执行序列（即最初由`BeginBlock`，`DeliverTx`和`EndBlock`触发的状态）的执行序列中跟踪燃气消耗. 在每个`DeliverTx`的开始处，必须将`AnteHandler`中的主gas meter设置为0，以便它可以跟踪每次交易的gas消耗。
+
+
+gas 消耗量统计通常可以由`BeginBlocker`，`EndBlocker`或处理程序中的模块开发人员手动完成，但大多数情况下，只要对存储进行读取或写入，gas 消耗量统计就会自动完成. 这种自动统计gas消耗量的逻辑在名为`GasKv`的特殊store中实现。
+
+
+#### Block Gas Meter
+
+
+`ctx.BlockGasMeter()`是用于跟踪每个块的gas消耗量并确保不超过特定限制的值. 每次调用`BeginBlock`时，都会创建一个`BlockGasMeter`的新实例。 `BlockGasMeter`是有限的，每个块的气体限制在应用程序的共识参数中定义。默认情况下，Cosmos SDK应用程序使用Tendermint提供的默认共识参数：
+
+
+```go
+// DefaultBlockParams returns a default BlockParams.
+func DefaultBlockParams() BlockParams {
+	return BlockParams{
+		MaxBytes:   22020096, // 21MB
+		MaxGas:     -1,
+		TimeIotaMs: 1000, // 1s
+	}
+}
+
+```
+
+通过`DeliverTx`处理新事务时，将检查`BlockGasMeter`的当前值以查看其是否超出限制。如果超出，`DeliverTx`立即返回。即使`BeginFlock`本身会消耗gas，即使在区块中的第一个事务中也可能发生这种情况。如果没有超出限制，则正常处理交易。在`DeliverTx`的结束时，处理交易所消耗gas会累积到`ctx.BlockGasMeter()`跟踪的gas消耗量上：
+
+```go
+ctx.BlockGasMeter().ConsumeGas(
+	ctx.GasMeter().GasConsumedToLimit(),
+	"block gas meter",
+)
+```
+
+#### AnteHandler
+
+`AnteHandler`是一个特殊的 `handler`, 它在每个交易的`CheckTx`和`DeliverTx`之间,在每个交易的`message`的`handler`之前运行. `AnteHandler`有着与`handler`不同的函数签名:
+
+
+```go
+// AnteHandler authenticates transactions, before their internal messages are handled.
+// If newCtx.IsZero(), ctx is used instead.
+type AnteHandler func(ctx Context, tx Tx, simulate bool) (newCtx Context, result Result, abort bool)
+
+```
+
+`anteHandler`不在核心SDK中实现，而是在模块中实现。这使开发人员可以选择适合其应用程序需求的`AnteHandler`版本。也就是说，当今大多数应用程序都使用`auth`模块中定义的默认实现。这是`anteHandler`在普通Cosmos SDK应用程序中要执行的操作：
+
+- 验证交易的类型正确。交易类型在实现`anteHandler`的模块中定义，他们遵循交易接口, 这使开发人员可以使用各种类型的应用程序进行交易。在默认的auth模块中，标准交易类型为StdTx：
+```go
+// Transactions objects must fulfill the Tx
+type Tx interface {
+	// Gets the all the transaction's messages.
+	GetMsgs() []Msg
+
+	// ValidateBasic does a simple and lightweight validation check that doesn't
+	// require access to any other information.
+	ValidateBasic() Error
+}
+
+// StdTx is a standard way to wrap a Msg with Fee and Signatures.
+// NOTE: the first signature is the fee payer (Signatures must not be nil).
+type StdTx struct {
+	Msgs       []sdk.Msg      `json:"msg" yaml:"msg"`
+	Fee        StdFee         `json:"fee" yaml:"fee"`
+	Signatures []StdSignature `json:"signatures" yaml:"signatures"`
+	Memo       string         `json:"memo" yaml:"memo"`
+}
+```
+
+- 验证交易中包含的每个消息的签名。每条消息应由一个或多个发送方签名，并且这些签名必须在`anteHandler`中进行验证。
+
+- 在`CheckTx`期间，请验证交易提供的天然气价格是否高于当地的最低天然气价格（提醒一下，可以从以下公式中减去天然气价格： fees = gas * gas-prices) . `min-gas-prices`是每个全节点的本地配置的参数，在`CheckTx`期间用于检查并丢弃未提供最低费用的交易。这确保了内存池不会被垃圾交易占满。
+
+- 验证交易的发送者有足够的资金来支付费用。最终用户生成交易时，他们必须指示以下3个参数中的2个（第三个参数是隐式的）： `fees`, `gas` and `gas-prices`. 这表明他们愿意为节点执行交易支付多少手续费。所提供的`gas`值存储在名为`GasWanted`的参数中，以备后用。
+- 将`newCtx.GasMeter`设置为`0`，且限制为`GasWanted`。此步骤非常重要，因为它不仅要确保事务处理不会消并在每次调用DeliverTx时运行anteHandler）耗无限量的气体，而且还要确保在每个`DeliverTx`之间重置`ctx.GasMeter`（在运行`anteHandler`之后，ctx设置为`newCtx`，并在每次调用`DeliverTx`时运行`anteHandler`）
+
+如上所述，`anteHandler`返回交易在执行过程中可以消耗的gas的最大限制，称为`GasWanted`。最终实际消耗的量以`GasUsed`表示，因此我们必须具有`GasUsed` <= `GasWanted`。当`DeliverTx`返回时，`GasWanted`和`GasUsed`都中继到基础共识引擎。
+
+
+
+
+
+
+
+
 
 
 
