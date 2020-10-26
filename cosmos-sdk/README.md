@@ -1287,28 +1287,28 @@ func NewBaseApp(
 
 在内部，只有一个`CommitMultiStore`，我们将其称为主状态或根状态。从这个根状态，我们通过一种称为缓存包装(cache-wrapping)的机制来导出两个易失状态。类型可以说明如下：
 
-![types](https://github.com/cosmos/cosmos-sdk/raw/master/docs/core/baseapp_state_types.png)
+![types](./img/baseapp_state_types.png)
 
 
 #### InitChain State Updates
 
 在`InitChain`期间，通过对根`CommitMultiStore`进行高速缓存包装来设置两个易失状态，即`checkState`和`DeliveryState`。任何后续的读取和写入都会在`CommitMultiStore`的缓存版本上进行
 
-![InitChain](https://github.com/cosmos/cosmos-sdk/raw/master/docs/core/baseapp_state-initchain.png)
+![InitChain](./img/baseapp_state-initchain.png)
 
 
 #### CheckTx State Updates
 
 在`CheckTx`期间，`checkState`基于根存储中的最后一个提交状态，用于所有读取和写入。在这里，我们仅执行`AnteHandler`并验证事务中每个消息的router的存在。注意，当我们执行`AnteHandler`时，我们将已经被缓存包装(cache-wrap)的`checkState`缓存包装。这样做的副作用是，如果`AnteHandler`失败，则状态转换将不会反映在`checkState`中-即`checkState`仅在成功时更新。
 
-![CheckTx](https://github.com/cosmos/cosmos-sdk/blob/master/docs/core/baseapp_state-checktx.png)
+![CheckTx](./img/baseapp_state-checktx.png)
 
 
 #### BeginBlock State Updates
 
 在`BeginBlock`期间，将`deliverState`设置为在后续的`DeliverTx` ABCI消息中使用。`DeliveryState`基于根存储中最后提交的状态，并被缓存。请注意，`commit`的`liveryState`设置为`nil`。
 
-![BeginBlock](https://github.com/cosmos/cosmos-sdk/raw/master/docs/core/baseapp_state-begin_block.png)
+![BeginBlock](./img/baseapp_state-begin_block.png)
 
 
 
@@ -1316,7 +1316,7 @@ func NewBaseApp(
 
 `DeliverTx`的状态流与`CheckTx`几乎相同，除了状态传递发生在`deliveryState`上并且执行交易中的消息外。与`CheckTx`相似，状态转换发生在双重缓存的状态下--`deliverState`。成功执行消息会导致将写入落实到deliverState。请注意，如果消息执行失败，则来自`AnteHandler`的状态转换将保留。
 
-![DeliverTx](https://github.com/cosmos/cosmos-sdk/raw/master/docs/core/baseapp_state-deliver_tx.png)
+![DeliverTx](./img/baseapp_state-deliver_tx.png)
 
 
 #### Commit State Updates
@@ -1324,7 +1324,7 @@ func NewBaseApp(
 
 在提交期间，所有在`deliverState`中发生的状态转换最终都会写入根`CommitMultiStore`，后者再提交到磁盘并产生新的应用程序根哈希。现在将这些状态转换视为最终状态。最后，将`checkState`设置为新提交的状态，将`deliverState`设置为`nil`以在`BeginBlock`上重置。
 
-![commit](https://github.com/cosmos/cosmos-sdk/raw/master/docs/core/baseapp_state-commit.png)
+![commit](./img/baseapp_state-commit.png)
 
 
 #### ParamStore
