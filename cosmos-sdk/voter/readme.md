@@ -29,3 +29,18 @@ A list of user accounts created during genesis of your application.
 - [Cosmos SDK documentation](https://docs.cosmos.network)
 - [Cosmos Tutorials](https://tutorials.cosmos.network)
 - [Channel on Discord](https://discord.gg/W8trcGV)
+
+
+
+## 操作
+
+```
+#创建poll
+votercli tx voter create-poll "Primier" "yqq" "tom" "jack" --from user1
+
+#投票
+votercli tx voter create-vote 21574519-d655-44c4-b805-b570bf209ee8 yqq --from user1
+
+
+```
+
