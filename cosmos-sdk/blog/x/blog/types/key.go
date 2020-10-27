@@ -18,3 +18,8 @@ const (
 	PostPrefix    = "post-"
 	QueryListPost = "list-post"
 )
+
+const (
+	CommentPrefix = "comment-"
+)
+		

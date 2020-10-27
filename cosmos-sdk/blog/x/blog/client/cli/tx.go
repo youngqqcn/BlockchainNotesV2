@@ -23,6 +23,9 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	blogTxCmd.AddCommand(flags.PostCommands(
 		// this line is used by starport scaffolding # 1
+		GetCmdCreateComment(cdc),
+		GetCmdSetComment(cdc),
+		GetCmdDeleteComment(cdc),
 		GetCmdCreatePost(cdc),
 	)...)
 

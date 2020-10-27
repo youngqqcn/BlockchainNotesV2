@@ -30,6 +30,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	blogQueryCmd.AddCommand(
 		flags.GetCommands(
 			// this line is used by starport scaffolding # 1
+			GetCmdListComment(queryRoute, cdc),
+			GetCmdGetComment(queryRoute, cdc),
 			GetCmdListPost(queryRoute, cdc),
 		)...,
 	)
