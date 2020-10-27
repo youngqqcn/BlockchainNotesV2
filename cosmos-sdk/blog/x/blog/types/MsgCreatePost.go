@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// 用于检查 MsgCreatePost 是否实现了sdk.Msg接口的方法
 var _ sdk.Msg = &MsgCreatePost{}
 
 type MsgCreatePost struct {

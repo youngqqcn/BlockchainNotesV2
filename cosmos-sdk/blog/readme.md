@@ -42,9 +42,21 @@ A list of user accounts created during genesis of your application.
 本示例将会使用 `key-value`存储数据, 和大多数key-value存储一样,你可以增删改查.
 
 
-下面我们开始创建一个类似博客的应用程序, 第一步, 手动创建一个  `Post` 类型:
 
-示例代码: https://github.com/cosmos/sdk-tutorials/blob/master/blog/blog/x/blog/types/TypePost.go
+## 整理
 
 
+- `types/TypePost.go`: 定义`Post`类型
+- `types/MsgCreatePost.go`: 定义`MsgCreatePost`消息, 并实现 `sdk.Msg`消息接口
+- `types/codec.go`: 为`MsgCreatePost`注册 codec
+- `handlerMsgCreatePost.go`: 处理`MsgCreatePost`消息
+- `handler.go`: 根据不同消息创建不同handler
+- `keeper/post.go`: 用于对数据库的读和写
+- `keeper/querier.go`: 查询器, 根据不同的查询请求获取数据
+- `client/cli`: 用于命令行
+- `client/rest`: 用户 HTTP
+- `client/cli/tx.go`: 管理tx(交易)相关的子命令
+- `client/cli/txPost.go`: 管理 post相关交易的子命令(如: create-post),发布post需要发起一笔新的交易
+- `client/cli/query.go`: 管理查询相关的子命令
+- `client/cli/queryPost.go`:管理从数据库中查询post的命令 (如: list-post )
 

@@ -6,6 +6,7 @@ import (
 	blogtypes "github.com/youngqqcn/blog/x/blog/types"
 )
 
+// CreatePost 创建Post
 func (k Keeper) CreatePost(ctx sdk.Context, post blogtypes.Post) {
 
 	store := ctx.KVStore(k.storeKey)
@@ -14,6 +15,7 @@ func (k Keeper) CreatePost(ctx sdk.Context, post blogtypes.Post) {
 	store.Set(key, value)
 }
 
+// 提供给 keeper/querier 使用
 func listPost(ctx sdk.Context, k Keeper) ([]byte, error) {
 
 	// 获取数据库中的所有的 post
