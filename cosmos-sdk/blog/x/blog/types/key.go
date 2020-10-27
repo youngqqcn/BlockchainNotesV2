@@ -15,5 +15,6 @@ const (
 )
 
 const (
-	PostPrefix = "post-"
+	PostPrefix    = "post-"
+	QueryListPost = "list-post"
 )

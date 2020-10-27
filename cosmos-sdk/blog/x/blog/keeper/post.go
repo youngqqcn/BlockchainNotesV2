@@ -1,14 +1,32 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/youngqqcn/blog/x/blog/types"
+	blogtypes "github.com/youngqqcn/blog/x/blog/types"
 )
 
-func (k Keeper) CreatePost(ctx sdk.Context, post types.Post) {
+func (k Keeper) CreatePost(ctx sdk.Context, post blogtypes.Post) {
 
 	store := ctx.KVStore(k.storeKey)
-	key := []byte(types.PostPrefix + post.ID)
+	key := []byte(blogtypes.PostPrefix + post.ID)
 	value := k.cdc.MustMarshalBinaryLengthPrefixed(post)
 	store.Set(key, value)
+}
+
+func listPost(ctx sdk.Context, k Keeper) ([]byte, error) {
+
+	// 获取数据库中的所有的 post
+	var postList []blogtypes.Post
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte(blogtypes.PostPrefix))
+	for ; iterator.Valid(); iterator.Next() {
+		var post blogtypes.Post
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(store.Get(iterator.Key()), &post)
+		postList = append(postList, post)
+	}
+
+	// 序列化
+	res := codec.MustMarshalJSONIndent(k.cdc, postList)
+	return res, nil
 }
