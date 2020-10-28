@@ -474,4 +474,25 @@ starport 创建的项目, 自带了一个默认的前端, 使用 `vue`框架编�
 
 
 
+# Scavenge 游戏
+
+> https://github.com/cosmos/sdk-tutorials/blob/master/scavenge/tutorial/02-the-game.md
+
+
+Front Runing: 就是别人你提交答案的时候, 提前知道了你的答案, 然后抢先于你提交了答案, 这样答题的收益就是他的.
+
+解决FrontRuning有一种方案: Commit-Reveal(提交-揭示), 这种机制有两个阶段:
+
+第一阶段(Commit): 将你的名字和答案的哈希值, 然后进行提交, 应用程序会将这次提交保存
+第二阶段(Reveal): 将正确的答案和你的名字提交, 应用程序将会对解题人的名字和答案进行验证
+
+
+
+
+
+
+
+
+
+
 
