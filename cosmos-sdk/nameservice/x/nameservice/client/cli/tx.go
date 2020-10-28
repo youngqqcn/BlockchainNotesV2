@@ -22,10 +22,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	nameserviceTxCmd.AddCommand(flags.PostCommands(
-    // this line is used by starport scaffolding # 1
-		GetCmdCreateName(cdc),
-		GetCmdSetName(cdc),
-		GetCmdDeleteName(cdc),
+	// this line is used by starport scaffolding # 1
+
 	)...)
 
 	return nameserviceTxCmd
