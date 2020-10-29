@@ -1,0 +1,1 @@
+{"type":"cosmos-sdk/StdTx","value":{"msg":[{"type":"nameservice/DeleteName","value":{"owner":"cosmos1r0tvh6gyycszlg508pzvqun3ly9r8jgd7hztnj","name":"youngqq.cn"}}],"fee":{"amount":[],"gas":"200000"},"signatures":null,"memo":""}}

@@ -5,6 +5,7 @@
       <sp-bank-balances />
       <sp-token-send />
       <!-- this line is used by starport scaffolding # 4 -->
+		<sp-type-form type="whois" :fields="['value', 'price', ]" module="nameservice" />
     </div>
   </div>
 </template>

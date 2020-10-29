@@ -1,0 +1,28 @@
+{
+  "type": "cosmos-sdk/StdTx",
+  "value": {
+    "msg": [
+      {
+        "type": "nameservice/DeleteName",
+        "value": {
+          "owner": "cosmos1r0tvh6gyycszlg508pzvqun3ly9r8jgd7hztnj",
+          "name": "youngqq.cn"
+        }
+      }
+    ],
+    "fee": {
+      "amount": [],
+      "gas": "200000"
+    },
+    "signatures": [
+      {
+        "pub_key": {
+          "type": "tendermint/PubKeySecp256k1",
+          "value": "A6od5CVZ+Fb2bVTr5+94E1j9M10+GSH06sQbmTtPQ15x"
+        },
+        "signature": "idCgrKoMIuTTqmsxlBWFmAn3XIudfalBBMUaIumlMoJwzlCq9+hM0H+dYf8EoBKYJrhU1fwx+ToZsetOWJ8hsg=="
+      }
+    ],
+    "memo": ""
+  }
+}
