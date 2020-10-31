@@ -5,6 +5,7 @@ https://github.com/tendermint/starport/tree/develop/docs
 
 安装 starport
 
+- 需要将 `GOPATH=$HOME/go` 和 `GOBIN=$GOPATH/bin`添加到`.bashrc`中, 需要将 `$GOBIN`添加到path中
 - 直接使用npm安装: `npm i -g @tendermint/starport` 
 - 或从源码编译: `git clone https://github.com/tendermint/starport && cd starport && make `
 

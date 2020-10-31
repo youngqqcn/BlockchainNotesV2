@@ -49,6 +49,66 @@ The `BaseApp` type holds many important parameters for any Cosmos SDK based appl
 
 +++ https://github.com/cosmos/cosmos-sdk/blob/7d7821b9af132b0f6131640195326aa02b6751db/baseapp/baseapp.go#L54-L108
 
+```go
+// BaseApp reflects the ABCI application implementation.
+type BaseApp struct { // nolint: maligned
+	// initialized on creation
+	logger      log.Logger
+	name        string               // application name from abci.Info
+	db          dbm.DB               // common DB backend
+	cms         sdk.CommitMultiStore // Main (uncached) state
+	storeLoader StoreLoader          // function to handle store loading, may be overridden with SetStoreLoader()
+	router      sdk.Router           // handle any kind of message
+	queryRouter sdk.QueryRouter      // router for redirecting query calls
+	txDecoder   sdk.TxDecoder        // unmarshal []byte into sdk.Tx
+
+	// set upon LoadVersion or LoadLatestVersion.
+	baseKey *sdk.KVStoreKey // Main KVStore in cms
+
+	anteHandler    sdk.AnteHandler  // ante handler for fee and auth
+	initChainer    sdk.InitChainer  // initialize state with validators and state blob
+	beginBlocker   sdk.BeginBlocker // logic to run before any txs
+	endBlocker     sdk.EndBlocker   // logic to run after all txs, and to determine valset changes
+	addrPeerFilter sdk.PeerFilter   // filter peers by address and port
+	idPeerFilter   sdk.PeerFilter   // filter peers by node ID
+	fauxMerkleMode bool             // if true, IAVL MountStores uses MountStoresDB for simulation speed.
+
+	// volatile states:
+	//
+	// checkState is set on InitChain and reset on Commit
+	// deliverState is set on InitChain and BeginBlock and set to nil on Commit
+	checkState   *state // for CheckTx
+	deliverState *state // for DeliverTx
+
+	// an inter-block write-through cache provided to the context during deliverState
+	interBlockCache sdk.MultiStorePersistentCache
+
+	// absent validators from begin block
+	voteInfos []abci.VoteInfo
+
+	// consensus params
+	// TODO: Move this in the future to baseapp param store on main store.
+	consensusParams *abci.ConsensusParams
+
+	// The minimum gas prices a validator is willing to accept for processing a
+	// transaction. This is mainly used for DoS and spam prevention.
+	minGasPrices sdk.DecCoins
+
+	// flag for sealing options and parameters to a BaseApp
+	sealed bool
+
+	// block height at which to halt the chain and gracefully shutdown
+	haltHeight uint64
+
+	// minimum block time (in Unix seconds) at which to halt the chain and gracefully shutdown
+	haltTime uint64
+
+	// application's version string
+	appVersion string
+}
+
+```
+
 Let us go through the most important components.
 
 > __Note__: Not all parameters are described, only the most important ones. Refer to the
