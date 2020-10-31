@@ -16,7 +16,7 @@ The Cosmos SDK utilizes two binary wire encoding protocols, [Amino](https://gith
 interface support. See the [Proto3 spec](https://developers.google.com/protocol-buffers/docs/proto3)
 for more information on Proto3, which Amino is largely compatible with (but not with Proto2).
 
-Due to Amino having significant performance drawbacks, being reflection-based, and
+Due to Amino having significant performance drawbacks(缺点), being reflection-based, and
 not having any meaningful cross-language/client support, Protocol Buffers, specifically
 [gogoprotobuf](https://github.com/gogo/protobuf/), is being used in place of Amino.
 Note, this process of using Protocol Buffers over Amino is still an ongoing process.
@@ -27,6 +27,8 @@ around transaction processing and signing, whereas store encoding revolves aroun
 types used in state-machine transitions and what is ultimately stored in the Merkle
 tree.
 
+主要有两大应用: 客户端编码(client store)和存储编码(store encoding). 客户端编码主要处理交易和签名, 存储编码处理状态机中的交易,这些交易最终存储在Merkle树中.
+
 For store encoding, protobuf definitions can exist for any type and will typically
 have an Amino-based "intermediary" type. Specifically, the protobuf-based type
 definition is used for serialization and persistence, whereas the Amino-based type
@@ -34,18 +36,32 @@ is used for business logic in the state-machine where they may converted back-n-
 Note, the Amino-based types may slowly be phased-out in the future so developers
 should take note to use the protobuf message definitions where possible.
 
+
+Amino编码将逐步淘汰, 所以开发者应该尽量使用 protobuf
+
+
+
 In the `codec` package, there exists two core interfaces, `Marshaler` and `ProtoMarshaler`,
-where the former encapsulates the current Amino interface except it operates on
+where the former encapsulates(封装) the current Amino interface except it operates on
 types implementing the latter instead of generic `interface{}` types.
+
+`Marshaler`是Amino接口; `ProtoMarshaler`是`interface{}`
 
 In addition, there exists two implementations of `Marshaler`. The first being
 `AminoCodec`, where both binary and JSON serialization is handled via Amino. The
 second being `ProtoCodec`, where both binary and JSON serialization is handled
 via Protobuf.
 
+
+`Marshaler`有两个实现: `AmnioCodec`:通过amino处理二进制和json序列化; 和`ProtoCodec`:使用protobuf进行二进制和json的序列化.
+
+
 This means that modules may use Amino or Protobuf encoding but the types must
 implement `ProtoMarshaler`. If modules wish to avoid implementing this interface
 for their types, they may use an Amino codec directly.
+
+这些就是说, 模块可以使用amino或protobuf编码(需要实现ProtoMarshaler). 如果不想使用这些接口, 可以直接使用Amino
+
 
 ### Amino
 
@@ -55,8 +71,13 @@ but there are exceptions like `x/gov`. Each module exposes a `RegisterLegacyAmin
 that allows a user to provide a codec and have all the types registered. An application
 will call this method for each necessary module.
 
+模块可以使用Amino序列化type 和 interface. 通常需要进行类型和接口的模块范围的注册. 每个模块暴露了一个`RegisterLegacyAminoCodec`函数允许用户提供codec并且拥有注册的多有类型. 应用程序会为需要的模块的调用此函数.
+
+
+
 Where there is no protobuf-based type definition for a module (see below), Amino
 is used to encode and decode raw wire bytes to the concrete type or interface:
+
 
 ```go
 bz := keeper.cdc.MustMarshalBinaryBare(typeOrInterface)
@@ -67,9 +88,15 @@ Note, there are length-prefixed variants of the above functionality and this is
 typically used for when the data needs to be streamed or grouped together
 (e.g. `ResponseDeliverTx.Data`)
 
+
+
+
+
 ### Gogoproto
 
 Modules are encouraged to utilize Protobuf encoding for their respective types.
+
+推荐使用protobuf进行编码
 
 #### FAQ
 
@@ -138,13 +165,25 @@ using the same full-qualified name passed as `protoName` to `InterfaceRegistry.R
 Another important use of Protobuf is the encoding and decoding of
 [transactions](./transactions.md). Transactions are defined by the application or
 the SDK, but passed to the underlying consensus engine in order to be relayed to
-other peers. Since the underlying consensus engine is agnostic to the application,
+other peers. Since the underlying consensus engine is agnostic(不可知的) to the application,
 it only accepts transactions in the form of raw bytes. The encoding is done by an
 object called `TxEncoder` and the decoding by an object called `TxDecoder`.
 
 +++ https://github.com/cosmos/cosmos-sdk/blob/9ae17669d6715a84c20d52e10e2232be9f467360/types/tx_msg.go#L82-L86
 
+```go
+
+// TxDecoder unmarshals transaction bytes
+type TxDecoder func(txBytes []byte) (Tx, error)
+
+// TxEncoder marshals transaction to bytes
+type TxEncoder func(tx Tx) ([]byte, error)
+```
+
+
 A standard implementation of both these objects can be found in the [`auth` module](https://github.com/cosmos/cosmos-sdk/blob/master/x/auth):
+
+`auth`模块中的的标准实现:
 
 +++ https://github.com/cosmos/cosmos-sdk/blob/9ae17669d6715a84c20d52e10e2232be9f467360/x/auth/tx/decoder.go
 

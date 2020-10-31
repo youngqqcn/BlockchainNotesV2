@@ -4,13 +4,16 @@ order: 8
 
 # Telemetry
 
-Gather relevant insights about your application and modules with custom metrics and telemetry. {synopsis}
+Gather relevant insights about your application and modules with custom metrics(指标) and telemetry(监测). {synopsis}
 
 The Cosmos SDK enables operators and developers to gain insight into the performance and behavior of
 their application through the use of the `telemetry` package. The Cosmos SDK currently supports
 enabling in-memory and prometheus as telemetry sinks. This allows the ability to query for and scrape
 metrics from a single exposed API endpoint -- `/metrics?format={text|prometheus}`, the default being
 `text`.
+
+开发者可以使用`telemetry`来对应用程序进行性能和行为的监控. Cosmos SDK目前支持内存和prometheus来监测. 
+
 
 If telemetry is enabled via configuration, a single global metrics collector is registered via the
 [go-metrics](https://github.com/armon/go-metrics) library. This allows emitting and collecting

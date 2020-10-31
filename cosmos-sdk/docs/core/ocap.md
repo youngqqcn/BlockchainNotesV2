@@ -4,17 +4,19 @@ order: 9
 
 # Object-Capability Model
 
+对象能力模型
+
 ## Intro
 
-When thinking about security, it is good to start with a specific threat model. Our threat model is the following:
+When thinking about security, it is good to start with a specific threat(威胁) model. Our threat model is the following:
 
-> We assume that a thriving ecosystem of Cosmos-SDK modules that are easy to compose into a blockchain application will contain faulty or malicious modules.
+> We assume that a thriving(壮大的) ecosystem of Cosmos-SDK modules that are easy to compose into(融入) a blockchain application will contain faulty(有缺陷的) or malicious(恶意的) modules.
 
 The Cosmos SDK is designed to address this threat by being the
 foundation of an object capability system.
 
-> The structural properties of object capability systems favor
-> modularity in code design and ensure reliable encapsulation in
+> The structural(结构的) properties of object capability systems favor
+> modularity in code design and ensure reliable encapsulation(封装) in
 > code implementation.
 >
 > These structural properties facilitate the analysis of some
@@ -37,7 +39,7 @@ foundation of an object capability system.
 >     if object A receives a message containing a reference to C. As a
 >     consequence of these two rules, an object can obtain a reference
 >     to another object only through a preexisting chain of references.
->     In short, "Only connectivity begets connectivity."
+>     In short, "Only connectivity begets(产生) connectivity."
 
 For an introduction to object-capabilities, see this [Wikipedia article](https://en.wikipedia.org/wiki/Object-capability_model).
 

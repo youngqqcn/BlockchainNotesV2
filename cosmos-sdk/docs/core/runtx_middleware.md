@@ -5,8 +5,11 @@ order: 10
 # RunTx recovery middleware
 
 `BaseApp.runTx()` function handles Golang panics that might occur during transactions execution, for example, keeper has faced an invalid state and paniced.
+
 Depending on the panic type different handler is used, for instance the default one prints an error log message.
 Recovery middleware is used to add custom panic recovery for SDK application developers.
+
+应用程序开发者可以使用恢复中间件添加自定义的panic recovery操作
 
 More context could be found in the corresponding [ADR-022](../architecture/adr-022-custom-panic-handling.md).
 
