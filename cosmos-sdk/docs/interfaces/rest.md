@@ -21,6 +21,8 @@ rootCmd.AddCommand(rest.ServeCommand(cdc, registerRoutes))
 
 Users will then be able to use the application CLI to start a new REST server, a local server through which they can securely interact with the application without downloading the entire state. The command entered by users would look something like this:
 
+
+启动 rest服务
 ```bash
 appcli rest-server --chain-id <chainID>
 ```

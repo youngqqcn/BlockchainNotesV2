@@ -1,8 +1,14 @@
 # Specifications
 
+规范
+
 This specification describes how to implement the LCD. LCD supports modular APIs. Currently, only
 ICS0 (TendermintAPI), ICS1 (Key API) and ICS20 (Token API) are supported. Later, if necessary, more
 APIs can be included.
+
+本文档描述了如何实现LCD, LCD支持模块化的APIs, 当前, 只支持ICS0, IS1, ICS20. 后面如果需要的话, 将会支持更多的API
+
+
 
 ## Build and Verify Proof of ABCI States
 
@@ -12,20 +18,27 @@ we need to extract name, height and store root hash from these substores to buil
 Merkle leaf nodes, then calculate hash from leaf nodes to root. The root hash of the simple Merkle
 tree is the AppHash which will be included in block header.
 
+我们已经指导, 基于cosmos-sdk的应用程序包含了多个子sotre(substores). 每个子存储都是通过IAVL sotre实现. 这些子存储被组织为`simple Merkle tree`(简单默克尔树).为了构建这棵树, 我们需要获取名字,高度,以及子存储的根hash以构建一个叶子节点. simple merkle tree 的根hash是AppHash, apphash会包含进区块头.
+
 ![Simple Merkle Tree](./pics/simpleMerkleTree.png)
 
 As we have discussed in LCD trust-propagation,
 the AppHash can be verified by checking voting power against a trusted validator set. Here we just
 need to build proof from ABCI state to AppHash. The proof contains two parts:
 
-* IAVL proof
-* Substore to AppHash proof
+根据我们已经讨论过的 LCD的信任传播(trust-propagation), apphash可以用使用一个可信的验证节点集合的投票权重进行验证.我们只需要构造ABCI状态到apphash证明即可. 这个证明包含了年部分:
+
+* IAVL proof    (IAVL证明)
+* Substore to AppHash proof  (子存储到apphash的证明)
+
 
 ### IAVL Proof
 
 The proof has two types: existence proof and absence proof. If the query key exists in the IAVL
 store, then it returns key-value and its existence proof. On the other hand, if the key doesn't
-exist, then it only returns absence proof which can demonstrate the key definitely doesn't exist.
+exist, then it only returns absence proof which can demonstrate(演示) the key definitely doesn't exist.
+
+这个证明包含两种类型: 存在证明(existence proof)和缺席证明(absence proof). 如果查询的key存在与IAVL store中, 它会返回key-alue和存在证明. 另一方面, 如果key不存在, 则返回缺席证明. 缺席证明可以演示key确实不存在.
 
 ### IAVL Existence Proof
 
@@ -89,8 +102,8 @@ Steps to verify proof:
 
 As we all know, all IAVL leaf nodes are sorted by the key of each leaf nodes. So we can calculate
 the position of the target key in the whole key set of this IAVL tree. As shown below, we can find
-out the left key and the right key. If we can demonstrate that both left key and right key
-definitely exist, and they are adjacent nodes. Thus the target key definitely doesn't exist.
+out the left key and the right key. If we can demonstrate(演示) that both left key and right key
+definitely exist, and they are adjacent(相邻) nodes. Thus the target key definitely doesn't exist.
 
 ![Absence Proof1](./pics/absence1.png)
 

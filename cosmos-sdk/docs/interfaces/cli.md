@@ -60,13 +60,15 @@ Every application CLI first constructs a root command, then adds functionality b
 The root command (called `rootCmd`) is what the user first types into the command line to indicate which application they wish to interact with. The string used to invoke the command (the "Use" field) is typically the name of the application suffixed with `-cli`, e.g. `appcli`. The root command typically includes the following commands to support basic functionality in the application.
 
 * **Status** command from the SDK rpc client tools, which prints information about the status of the connected [`Node`](../core/node.md). The Status of a node includes `NodeInfo`,`SyncInfo` and `ValidatorInfo`.
-* **Config** [command](https://github.com/cosmos/cosmos-sdk/blob/master/client/config.go) from the SDK client tools, which allows the user to edit a `config.toml` file that sets values for [flags](#flags) such as `--chain-id` and which `--node` they wish to connect to.
+* **Config** [command](https://github.com/cosmos/cosmos-sdk/blob/master/client/config.go) from the SDK client tools, which allows the user to edit a `config.toml` file that sets values for [flags](#flags) such as `--chain-id` and which `--node` they wish to connect to. 通过config命令编辑配置文件(`config.toml`)
 The `config` command can be invoked by typing `appcli config` with optional arguments `<key> [value]` and a `--get` flag to query configurations or `--home` flag to create a new configuration.
-* **Keys** [commands](https://github.com/cosmos/cosmos-sdk/blob/master/client/keys) from the SDK client tools, which includes a collection of subcommands for using the key functions in the SDK crypto tools, including adding a new key and saving it to disk, listing all public keys stored in the key manager, and deleting a key. For example, users can type `appcli keys add <name>` to add a new key and save an encrypted copy to disk, using the flag `--recover` to recover a private key from a seed phrase or the flag `--multisig` to group multiple keys together to create a multisig key. For full details on the `add` key command, see the code [here](https://github.com/cosmos/cosmos-sdk/blob/master/client/keys/add.go). For more details about usage of `--keyring-backend` for storage of key credentials look at the [keyring docs](/keyring.md).
+* **Keys** [commands](https://github.com/cosmos/cosmos-sdk/blob/master/client/keys) from the SDK client tools, which includes a collection of subcommands for using the key functions in the SDK crypto tools, including adding a new key and saving it to disk, listing all public keys stored in the key manager, and deleting a key. For example, users can type `appcli keys add <name>` to add a new key and save an encrypted copy to disk, using the flag `--recover` to recover a private key from a seed phrase or the flag `--multisig` to group multiple keys together to create a multisig key. For full details on the `add` key command, see the code [here](https://github.com/cosmos/cosmos-sdk/blob/master/client/keys/add.go). For more details about usage of `--keyring-backend` for storage of key credentials(证书) look at the [keyring docs](/keyring.md).
 * [**Transaction**](#transaction-commands) commands.
 * [**Query**](#query-commands) commands.
 
 Next is an example `main()` function from the `nameservice` application. It instantiates the root command, adds a [*persistent* flag](#flags) and `PreRun` function to be run before every execution, and adds all of the necessary subcommands.
+
+`PreRun` 会在每个命令运行前执行一次
 
 +++ https://github.com/cosmos/sdk-tutorials/blob/86a27321cf89cc637581762e953d0c07f8c78ece/nameservice/cmd/nscli/main.go#L23-L66
 
@@ -123,9 +125,16 @@ Flags are added to commands directly (generally in the [module's CLI file](../bu
 
 The last function to define in `main.go` is `initConfig`, which does exactly what it sounds like - initialize configurations. To call this function, set it as a `PersistentPreRunE` function for the root command, so that it always executes before the main execution of the root command and any of its subcommands. `initConfig()` does the  following:
 
+
+`PersistentPreRunE`函数会在每个主命令和所有子命令执行前运行
+
+
 1. Read in the `config.toml` file. This same file is edited through `config` commands.
 2. Use the [Viper](https://github.com/spf13/viper) to read in configurations from the file and set them.
 3. Set any persistent flags defined by the user: `--chain-id`, `--encoding`, `--output`, etc.
+
+
+可以使用`Viper`读写取配置文件
 
 Here is an example of an `initConfig()` function from the [nameservice tutorial CLI](https://cosmos.network/docs/tutorial/entrypoint.html#nscli):
 
