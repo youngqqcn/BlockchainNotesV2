@@ -17,7 +17,13 @@ The Cosmos SDK can be thought as the Ruby-on-Rails of blockchain development. It
 
 On top of this core, the Cosmos SDK enables developers to build modules that implement the business logic of their application. In other words, SDK modules implement the bulk of the logic of applications, while the core does the wiring and enables modules to be composed together. The end goal is to build a robust ecosystem of open-source SDK modules, making it increasingly easier to build complex blockchain applications. 
 
+
+
+
 SDK Modules can be seen as little state-machines within the state-machine. They generally define a subset of the state using one ore multiple `KVStore` in the [main multistore](../core/store.md), as well as a subset of [`message` types](./messages-and-queries.md#messages). These `message`s are routed by one of the main component of SDK core, [`baseapp`](../core/baseapp.md), to the [`handler`](./handler.md) of the module that define them. 
+
+
+SDK模块可以看作时状态机中的小状态机. 模块定义了一个状态子集, 在主的multistore中使用多个KVStore. 同样也是`message`类型的子集. 这些消息路由到不同组件.
 
 ```
                                       +
@@ -66,13 +72,25 @@ SDK Modules can be seen as little state-machines within the state-machine. They 
 
 As a result of this architecture, building an SDK application usually revolves around writing modules to implement the specialized  logic of the application, and composing them with existing modules to complete the application. Developers will generally work on modules that implement logic needed for their specific use case that do not exist yet, and will use existing modules for more generic functionalities like staking, accounts or token management. 
 
+
+
+
 ## How to Approach Building Modules as a Developer
 
 While there is no definitive guidelines for writing modules, here are some important design principles developers should keep in mind when building them:
 
-- **Composability**: SDK applications are almost always composed of multiple modules. This means developers need to carefully consider the integration of their module not only with the core of the Cosmos SDK, but also with other modules. The former is achieved by following standard design patterns outlined [here](#main-components-of-sdk-modules), while the latter is achieved by properly exposing the store(s) of the module via the [`keeper`](./keeper.md). 
-- **Specialization**: A direct consequence of the **composability** feature is that modules should be **specialized**. Developers should carefully establish the scope of their module and not batch multiple functionalities into the same module. This separation of concern enables modules to be re-used in other projects and improves the upgradability of the application. **Specialization** also plays an important role in the [object-capabilities model](../core/ocap.md) of the Cosmos SDK. 
-- **Capabilities**: Most modules need to read and/or write to the store(s) of other modules. However, in an open-source environment, it is possible for some module to be malicious. That is why module developers need to carefully think not only about how their module interracts with other modules, but also about how to give access to the module's store(s). The Cosmos SDK takes a capabilities-oriented approach to inter-module security. This means that each store defined by a module is accessed by a `key`, which is held by the module's [`keeper`](./keeper.md). This `keeper` defines how to access the store(s) and under what conditions. Access to the module's store(s) is done by passing a reference to the module's `keeper`. 
+- **Composability(可组合性)**: SDK applications are almost always composed of multiple modules. This means developers need to carefully consider the integration of their module not only with the core of the Cosmos SDK, but also with other modules. The former is achieved by following standard design patterns outlined [here](#main-components-of-sdk-modules), while the latter is achieved by properly exposing the store(s) of the module via the [`keeper`](./keeper.md). 
+    > 开发者不仅可以使用SDK的不同的模块进行整合, 而且可以使用其他模块. 前者使用标准的设计, 后者通过`keeper`暴露`store`
+
+- **Specialization(特定化)**: A direct consequence of the **composability** feature is that modules should be **specialized**. Developers should carefully establish the scope of their module and not batch multiple functionalities into the same module. This separation of concern enables modules to be re-used in other projects and improves the upgradability of the application. **Specialization** also plays an important role in the [object-capabilities model](../core/ocap.md) of the Cosmos SDK.
+
+    > 一个模块只负责一个特定的功能, 而不要负责多个功能. 这样不仅可以提高模块的重用性, 而且可以提高可升级性. 特定性同样在对象功能模型中起到很重要的作用.
+
+- **Capabilities(能力)**: Most modules need to read and/or write to the store(s) of other modules. However, in an open-source environment, it is possible for some module to be malicious. That is why module developers need to carefully think not only about how their module interracts with other modules, but also about how to give access to the module's store(s). The Cosmos SDK takes a capabilities-oriented approach to inter-module security. This means that each store defined by a module is accessed by a `key`, which is held by the module's [`keeper`](./keeper.md). This `keeper` defines how to access the store(s) and under what conditions. Access to the module's store(s) is done by passing a reference to the module's `keeper`. 
+
+    > 很多模块需要读或写其他模块的store(s). 然而, 在开源的环境中, 很有可能有大量的模块. 这就是为什么开发者不仅需要谨慎的考虑他们的模块与其他模块的交互,同样要考虑怎么访问其他模块的store(s). Cosmos SDK 
+
+
 
 ## Main Components of SDK Modules
 

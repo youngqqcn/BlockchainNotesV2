@@ -4,7 +4,7 @@ order: 4
 
 # Handlers
 
-A `Handler` designates a function that processes [`message`s](./messages-and-queries.md#messages). `Handler`s are specific to the module in which they are defined, and only process `message`s defined within the said module. They are called from `baseapp` during [`DeliverTx`](../core/baseapp.md#delivertx). {synopsis}
+A `Handler` designates(指定) a function that processes [`message`s](./messages-and-queries.md#messages). `Handler`s are specific to the module in which they are defined, and only process `message`s defined within the said module. They are called from `baseapp` during [`DeliverTx`](../core/baseapp.md#delivertx). {synopsis}
 
 ## Pre-requisite Readings
 
@@ -16,6 +16,11 @@ A `Handler` designates a function that processes [`message`s](./messages-and-que
 The `handler` type defined in the Cosmos SDK specifies the typical structure of a `handler` function.
 
 +++ https://github.com/cosmos/cosmos-sdk/blob/7d7821b9af132b0f6131640195326aa02b6751db/types/handler.go#L4
+
+```go
+// Handler defines the core of the state transition function of an application.
+type Handler func(ctx Context, msg Msg) Result
+```
 
 Let us break it down:
 
@@ -55,6 +60,40 @@ Then, this simple switch returns a `handler` function specific to the type of th
 
 - First, they perform *stateful* checks to make sure the `message` is valid. At this stage, the `message`'s `ValidateBasic()` method has already been called, meaning *stateless* checks on the message (like making sure parameters are correctly formatted) have already been performed. Checks performed in the `handler` can be more expensive and require access to the state. For example, a `handler` for a `transfer` message might check that the sending account has enough funds to actually perform the transfer. To access the state, the `handler` needs to call the [`keeper`'s](./keeper.md) getter functions. 
 - Then, if the checks are successfull, the `handler` calls the [`keeper`'s](./keeper.md) setter functions to actually perform the state transition. 
+
+
+`handler`处理`message`主要有2步:
+
+- 第一: 执行 *有状态* 检查, 以确保`message`是有效的. 到这个阶段, `message`的`ValidateBasic`早已经被调用并执行了*无状态*检查(主要检查参数格式是否正确). 执行有状态检查时很昂贵的,因为需要访问状态(数据库).例如, 处理`transfer`消息需要检查发送方的余额是否足够. 为了访问状态, `handler`需要调用`keeper`的getter函数
+- 第二: 如果检查成功, 则`handler`会调用 `keeper`的setter方法, 执行状态修改操作.
+
+
+这里一投票的demo为例:
+
+```go
+
+func handleMsgSetPoll(ctx sdk.Context, k keeper.Keeper, msg types.MsgSetPoll) (*sdk.Result, error) {
+	var poll = types.Poll{
+		Creator: msg.Creator,
+		ID:      msg.ID,
+    	Title: msg.Title,
+    	Options: msg.Options,
+    }
+    
+    // 执行有状态的检查
+	if !msg.Creator.Equals(k.GetPollOwner(ctx, msg.ID)) { // Checks if the the msg sender is the same as the current owner
+		return nil, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "Incorrect Owner") // If not, throw an error
+	}
+
+    // 通过keeper改变状态
+	k.SetPoll(ctx, poll)
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+```
+
+
 
 Before returning, `handler` functions generally emit one or multiple [`events`](../core/events.md) via the `EventManager` held in the `ctx`:
 

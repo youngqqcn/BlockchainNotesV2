@@ -4,7 +4,14 @@ order: 2
 
 # Module Manager
 
+模块管理器
+
 Cosmos SDK modules need to implement the [`AppModule` interfaces](#application-module-interfaces), in order to be managed by the application's [module manager](#module-manager). The module manager plays an important role in [`message` and `query` routing](../core/baseapp.md#routing), and allows application developers to set the order of execution of a variety of functions like [`BeginBlocker` and `EndBlocker`](../basics/app-anatomy.md#begingblocker-and-endblocker). {synopsis}
+
+
+
+Cosmos SDK 模块需要实现`AppModule`接口, 以便能够被`module manager`管理. `module manager`在`message`和`query`的路由起很重要的作用, 同样允许应用开发者设置不同函数的启动顺序,像`BeginBlocker`和`EndBlocker`函数.
+
 
 ## Pre-requisite Readings
 
@@ -12,24 +19,41 @@ Cosmos SDK modules need to implement the [`AppModule` interfaces](#application-m
 
 ## Application Module Interfaces
 
-Application module interfaces exist to facilitate the composition of modules together to form a functional SDK application. There are 3 main application module interfaces:
+Application module interfaces exist to facilitate(促进) the composition of modules together to form a functional SDK application. There are 3 main application module interfaces:
 
 - [`AppModuleBasic`](#appmodulebasic) for independent module functionalities.
+    > 独立的模块功能
 - [`AppModule`](#appmodule) for inter-dependent module functionalities (except genesis-related functionalities).
+    > 相互依赖的模块功能(除genesis相关的功能外)
 - [`AppModuleGenesis`](#appmodulegenesis) for inter-dependent genesis-related module functionalities.
+    > 相互依赖的genesis相关的模块功能
 
 The `AppModuleBasic` interface exists to define independent methods of the module, i.e. those that do not depend on other modules in the application. This allows for the construction of the basic application structure early in the application definition, generally in the `init()` function of the [main application file](../basics/app-anatomy.md#core-application-file).
 
+`AppModuleBasic`接口定义了模块的一些独立的方法.例如,它们不需要依赖其他应用程序模块.这样他们可以组成基础的早期应用程序结构, 通常在主应用程序的`init()`函数中.
+
+
 The `AppModule` interface exists to define inter-dependent module methods. Many modules need to interract with other modules, typically through [`keeper`s](./keeper.md), which means there is a need for an interface where modules list their `keeper`s and other methods that require a reference to another module's object. `AppModule` interface also enables the module manager to set the order of execution between module's methods like `BeginBlock` and `EndBlock`, which is important in cases where the order of execution between modules matters in the context of the application.
+
+`AppModule`接口定义一些相互依赖的模块方法. 很多模块需要与其他模块交互, 一般都是通过`keeper`s, 这也意味着模块需要提供一个方法用于列出他们的`keeper`,并且其他的方法需要引用其他模块对象. `AppModule`接口还允许`module manager`设置不同函数的启动顺序,像`BeginBlocker`和`EndBlocker`函数.
+
 
 Lastly the interface for genesis functionality `AppModuleGenesis` is separated out from full module functionality `AppModule` so that modules which
 are only used for genesis can take advantage of the `Module` patterns without having to define many placeholder functions.
+
+
+最后,`AppModuleGenesis`接口用于genesis相关功能, 并且是独立于全节点功能的`AppModule`以便模块可以用于genesis, 也利用了`Module`模式的优点, 而不需要定义很多占位函数.
+
+
 
 ### `AppModuleBasic`
 
 The `AppModuleBasic` interface defines the independent methods modules need to implement.
 
 +++ https://github.com/cosmos/cosmos-sdk/blob/325be6ff215db457c6fc7668109640cd7fdac461/types/module/module.go#L49-L63
+
+
+
 
 ```go
 // AppModuleBasic is the standard form for basic non-dependant elements of an application module.
@@ -116,7 +140,8 @@ The `AppModule` interface defines the inter-dependent methods modules need to im
 type AppModule interface {
 	AppModuleGenesis
 
-	// registers
+    // registers
+    // 注册一些不变值, 如果不变值与预期值不同, 会触发相应的处理逻辑(通常是链挂掉)
 	RegisterInvariants(sdk.InvariantRegistry)
 
 	// routes
@@ -128,11 +153,16 @@ type AppModule interface {
 	// Deprecated: use RegisterQueryService
 	LegacyQuerierHandler(*codec.LegacyAmino) sdk.Querier
 
-	// RegisterServices allows a module to register services
+    // RegisterServices allows a module to register services
+    // 注册 gRPC 查询服务
 	RegisterServices(Configurator)
 
-	// ABCI
-	BeginBlock(sdk.Context, abci.RequestBeginBlock)
+    // ABCI
+    
+    // 允许模块的开发者自定义一些操作, 在每个区块开始前, 此函数会自动触发; 如果不需要, 则实现为空函数即可
+    BeginBlock(sdk.Context, abci.RequestBeginBlock)
+    
+    // 允许模块的开发者自定义一些操作, 在每个区块结束时, 此函数会自动触发; 如果不需要, 则实现为空函数即可
 	EndBlock(sdk.Context, abci.RequestEndBlock) []abci.ValidatorUpdate
 }
 ```
@@ -140,9 +170,12 @@ type AppModule interface {
 
 `AppModule`s are managed by the [module manager](#manager). This interface embeds the `AppModuleGenesis` interface so that the manager can access all the independent and genesis inter-dependent methods of the module. This means that a concrete type implementing the `AppModule` interface must either implement all the methods of `AppModuleGenesis` (and by extension `AppModuleBasic`), or include a concrete type that does as parameter.
 
+
+`AppModule`内含了`AppModuleGenesis`, 所以需要还需实现 `AppModuleGenesis` 接口
+
 Let us go through the methods of `AppModule`:
 
-- `RegisterInvariants(sdk.InvariantRegistry)`: Registers the [`invariants`](./invariants.md) of the module. If the invariants deviates from its predicted value, the [`InvariantRegistry`](./invariants.md#registry) triggers appropriate logic (most often the chain will be halted).
+- `RegisterInvariants(sdk.InvariantRegistry)`: Registers the [`invariants`](./invariants.md) of the module. If the invariants deviates(偏离) from its predicted value, the [`InvariantRegistry`](./invariants.md#registry) triggers appropriate logic (most often the chain will be halted).
 - `Route()`: Returns the route for [`message`s](./messages-and-queries.md#messages) to be routed to the module by [`baseapp`](../core/baseapp.md#message-routing).
 - `QuerierRoute()` (deprecated): Returns the name of the module's query route, for [`queries`](./messages-and-queries.md#queries) to be routes to the module by [`baseapp`](../core/baseapp.md#query-routing).
 - `LegacyQuerierHandler(*codec.LegacyAmino)` (deprecated): Returns a [`querier`](./query-services.md#legacy-queriers) given the query `path`, in order to process the `query`.
@@ -166,6 +199,12 @@ type AppModule struct {
 
 In the example above, you can see that the `AppModule` concrete type references an `AppModuleBasic`, and not an `AppModuleGenesis`. That is because `AppModuleGenesis` only needs to be implemented in modules that focus on genesis-related functionalities. In most modules, the concrete `AppModule` type will have a reference to an `AppModuleBasic` and implement the two added methods of `AppModuleGenesis` directly in the `AppModule` type.
 
+
+
+通常 `AppModule`直接实现`InitGenesis` 和 `ExportGenesis` 而不是实现 `AppModuleGenesis` 接口.
+
+
+
 If no parameter is required (which is often the case for `AppModuleBasic`), just declare an empty concrete type like so:
 
 ```go
@@ -181,6 +220,13 @@ Module managers are used to manage collections of `AppModuleBasic` and `AppModul
 The `BasicManager` is a structure that lists all the `AppModuleBasic` of an application:
 
 +++ https://github.com/cosmos/cosmos-sdk/blob/325be6ff215db457c6fc7668109640cd7fdac461/types/module/module.go#L65-L66
+
+```go
+// BasicManager is a collection of AppModuleBasic
+type BasicManager map[string]AppModuleBasic
+
+```
+
 
 It implements the following methods:
 
@@ -200,6 +246,155 @@ The `Manager` is a structure that holds all the `AppModule` of an application, a
 
 +++ https://github.com/cosmos/cosmos-sdk/blob/325be6ff215db457c6fc7668109640cd7fdac461/types/module/module.go#L223-L231
 
+
+直接看代码
+
+
+```go
+// Manager defines a module manager that provides the high level utility for managing and executing
+// operations for a group of modules
+type Manager struct {
+	Modules            map[string]AppModule
+	OrderInitGenesis   []string
+	OrderExportGenesis []string
+	OrderBeginBlockers []string
+	OrderEndBlockers   []string
+}
+
+
+// SetOrderInitGenesis sets the order of init genesis calls
+func (m *Manager) SetOrderInitGenesis(moduleNames ...string) {
+	m.OrderInitGenesis = moduleNames
+}
+
+// SetOrderExportGenesis sets the order of export genesis calls
+func (m *Manager) SetOrderExportGenesis(moduleNames ...string) {
+	m.OrderExportGenesis = moduleNames
+}
+
+// SetOrderBeginBlockers sets the order of set begin-blocker calls
+func (m *Manager) SetOrderBeginBlockers(moduleNames ...string) {
+	m.OrderBeginBlockers = moduleNames
+}
+
+// SetOrderEndBlockers sets the order of set end-blocker calls
+func (m *Manager) SetOrderEndBlockers(moduleNames ...string) {
+	m.OrderEndBlockers = moduleNames
+}
+
+// RegisterInvariants registers all module routes and module querier routes
+func (m *Manager) RegisterInvariants(ir sdk.InvariantRegistry) {
+	for _, module := range m.Modules {
+		module.RegisterInvariants(ir)
+	}
+}
+
+// RegisterRoutes registers all module routes and module querier routes
+func (m *Manager) RegisterRoutes(router sdk.Router, queryRouter sdk.QueryRouter, legacyQuerierCdc *codec.LegacyAmino) {
+
+    // 为每个模块注册路由
+	for _, module := range m.Modules {
+		if !module.Route().Empty() {
+			router.AddRoute(module.Route())
+		}
+		if module.QuerierRoute() != "" {
+			queryRouter.AddRoute(module.QuerierRoute(), module.LegacyQuerierHandler(legacyQuerierCdc))
+		}
+	}
+}
+
+// RegisterQueryServices registers all module query services
+func (m *Manager) RegisterQueryServices(grpcRouter grpc.Server) {
+	for _, module := range m.Modules {
+        // 为每个模块注册grpc服务
+		module.RegisterQueryService(grpcRouter)
+	}
+}
+
+// InitGenesis performs init genesis functionality for modules
+func (m *Manager) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, genesisData map[string]json.RawMessage) abci.ResponseInitChain {
+	var validatorUpdates []abci.ValidatorUpdate
+	for _, moduleName := range m.OrderInitGenesis {
+		if genesisData[moduleName] == nil {
+			continue
+		}
+
+        // 调用每个模块的InitGenesis
+		moduleValUpdates := m.Modules[moduleName].InitGenesis(ctx, cdc, genesisData[moduleName])
+
+		// use these validator updates if provided, the module manager assumes
+		// only one module will update the validator set
+		if len(moduleValUpdates) > 0 {
+			if len(validatorUpdates) > 0 {
+				panic("validator InitGenesis updates already set by a previous module")
+			}
+			validatorUpdates = moduleValUpdates
+		}
+	}
+
+	return abci.ResponseInitChain{
+		Validators: validatorUpdates,
+	}
+}
+
+// ExportGenesis performs export genesis functionality for modules
+func (m *Manager) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) map[string]json.RawMessage {
+	genesisData := make(map[string]json.RawMessage)
+	for _, moduleName := range m.OrderExportGenesis {
+
+        // 调用每个模块的 ExportGenesis
+		genesisData[moduleName] = m.Modules[moduleName].ExportGenesis(ctx, cdc)
+	}
+
+	return genesisData
+}
+
+// BeginBlock performs begin block functionality for all modules. It creates a
+// child context with an event manager to aggregate events emitted from all
+// modules.
+func (m *Manager) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	ctx = ctx.WithEventManager(sdk.NewEventManager())
+
+	for _, moduleName := range m.OrderBeginBlockers {
+        // 调用每个模块的 ExportGenesis
+		m.Modules[moduleName].BeginBlock(ctx, req)
+	}
+
+	return abci.ResponseBeginBlock{
+		Events: ctx.EventManager().ABCIEvents(),
+	}
+}
+
+// EndBlock performs end block functionality for all modules. It creates a
+// child context with an event manager to aggregate events emitted from all
+// modules.
+func (m *Manager) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	ctx = ctx.WithEventManager(sdk.NewEventManager())
+	validatorUpdates := []abci.ValidatorUpdate{}
+
+	for _, moduleName := range m.OrderEndBlockers {
+
+        // 调用每个模块的 ExportBlock
+		moduleValUpdates := m.Modules[moduleName].EndBlock(ctx, req)
+
+		// use these validator updates if provided, the module manager assumes
+		// only one module will update the validator set
+		if len(moduleValUpdates) > 0 {
+			if len(validatorUpdates) > 0 {
+				panic("validator EndBlock updates already set by a previous module")
+			}
+
+			validatorUpdates = moduleValUpdates
+		}
+	}
+
+	return abci.ResponseEndBlock{
+		ValidatorUpdates: validatorUpdates,
+		Events:           ctx.EventManager().ABCIEvents(),
+	}
+}
+```
+
 The module manager is used throughout the application whenever an action on a collection of modules is required. It implements the following methods:
 
 - `NewManager(modules ...AppModule)`: Constructor function. It takes a list of the application's `AppModule`s and builds a new `Manager`. It is generally called from the application's main [constructor function](../basics/app-anatomy.md#constructor-function).
@@ -218,6 +413,60 @@ The module manager is used throughout the application whenever an action on a co
 Here's an example of a concrete integration within an application:
 
 +++ https://github.com/cosmos/cosmos-sdk/blob/2323f1ac0e9a69a0da6b43693061036134193464/simapp/app.go#L315-L362
+
+
+
+```go
+
+// NOTE: Any module instantiated in the module manager that is later modified
+// must be passed by reference here.
+app.mm = module.NewManager(
+    genutil.NewAppModule(
+        app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx,
+        encodingConfig.TxConfig,
+    ),
+    auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts),
+    vesting.NewAppModule(app.AccountKeeper, app.BankKeeper),
+    bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
+    capability.NewAppModule(appCodec, *app.CapabilityKeeper),
+    crisis.NewAppModule(&app.CrisisKeeper),
+    gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
+    mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
+    slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
+    distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
+    staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
+    upgrade.NewAppModule(app.UpgradeKeeper),
+    evidence.NewAppModule(app.EvidenceKeeper),
+    ibc.NewAppModule(app.IBCKeeper),
+    params.NewAppModule(app.ParamsKeeper),
+    transferModule,
+)
+
+// During begin block slashing happens after distr.BeginBlocker so that
+// there is nothing left over in the validator fee pool, so as to keep the
+// CanWithdrawInvariant invariant.
+// NOTE: staking module is required if HistoricalEntries param > 0
+app.mm.SetOrderBeginBlockers(
+    upgradetypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
+    evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName,
+)
+app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName)
+
+// NOTE: The genutils module must occur after staking so that pools are
+// properly initialized with tokens from genesis accounts.
+// NOTE: Capability module must occur first so that it can initialize any capabilities
+// so that other modules that want to create or claim capabilities afterwards in InitChain
+// can do so safely.
+app.mm.SetOrderInitGenesis(
+    capabilitytypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
+    slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
+    ibchost.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, ibctransfertypes.ModuleName,
+)
+
+app.mm.RegisterInvariants(&app.CrisisKeeper)
+app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
+app.mm.RegisterServices(module.NewConfigurator(app.GRPCQueryRouter()))
+```
 
 ## Next {hide}
 

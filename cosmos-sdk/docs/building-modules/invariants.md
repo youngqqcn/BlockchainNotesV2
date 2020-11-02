@@ -16,6 +16,15 @@ An `Invariant` is a function that checks for a particular invariant within a mod
 
 +++ https://github.com/cosmos/cosmos-sdk/blob/7d7821b9af132b0f6131640195326aa02b6751db/types/invariant.go#L9
 
+
+```go
+// An Invariant is a function which tests a particular invariant.
+// The invariant returns a descriptive message about what happened
+// and a boolean indicating whether the invariant has been broken.
+// The simulator will then halt and print the logs.
+type Invariant func(ctx Context) (string, bool)
+```
+
 where the `string` return value is the invariant message, which can be used when printing logs, and the `bool` return value is the actual result of the invariant check. 
 
 In practice, each module implements `Invariant`s in a `./keeper/invariants.go` file within the module's folder. The standard is to implement one `Invariant` function per logical grouping of invariants with the following model:
