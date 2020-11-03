@@ -36,6 +36,9 @@ func main() {
 
 	app.SetConfig()
 
+	version.Name = "nameservice"
+	fmt.Printf("version, %s\n", version.Name )
+
 	// TODO: setup keybase, viper object, etc. to be passed into
 	// the below functions and eliminate global vars, like we do
 	// with the cdc

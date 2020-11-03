@@ -35,7 +35,10 @@ func main() {
 
 	app.SetConfig()
 
+	// 设置默认的context
 	ctx := server.NewDefaultContext()
+
+
 	cobra.EnableCommandSorting = false
 	rootCmd := &cobra.Command{
 		Use:               "nameserviced",
@@ -57,7 +60,8 @@ func main() {
 	rootCmd.AddCommand(flags.NewCompletionCmd(rootCmd, true))
 	rootCmd.AddCommand(debug.Cmd(cdc))
 
-	server.AddCommands(ctx, cdc, rootCmd, newApp, exportAppStateAndTMValidators)
+	// AppCreator func(log.Logger, dbm.DB, io.Writer) abci.Application
+	server.AddCommands(ctx, cdc, rootCmd, newApp/*appCreator*/, exportAppStateAndTMValidators)
 
 	// prepare and add flags
 	executor := cli.PrepareBaseCmd(rootCmd, "AU", app.DefaultNodeHome)

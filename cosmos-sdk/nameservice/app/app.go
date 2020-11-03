@@ -31,8 +31,11 @@ import (
 const appName = "qns"
 
 var (
+	//设置节点的工作目录
 	DefaultCLIHome  = os.ExpandEnv("$HOME/.nameservicecli")
 	DefaultNodeHome = os.ExpandEnv("$HOME/.nameserviced")
+
+	// 创建 module manager 
 	ModuleBasics    = module.NewBasicManager(
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
