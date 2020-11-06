@@ -90,3 +90,6 @@ addr_book_strict = false
 从0开始有四个验证节点,就没有问题
 
 
+
+
+

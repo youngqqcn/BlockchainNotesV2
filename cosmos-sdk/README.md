@@ -88,7 +88,7 @@ CosmosSDK是建立在Tendermint之上可以用来可开发安全的状态机的�
 - 4. 提交(Commit)状态的修改(state changes).
 
 
-### `baseapp`
+### 简介`baseapp`
 
 
 `baseapp` 是Cosmos SDK应用程序的一个样板实现.它带有一个用于处理和地层共识引擎的连接的ABCI实现. 通常, 一个Cosmos SDK应用程序会扩展 `baseapp`, 通过在`app.go`嵌入 `baseapp`.  这是一个来自Cosmos SDK教程中实际的例子:  https://github.com/cosmos/sdk-tutorials/blob/c6754a1e313eb1ed973c5c91dcc606f2fd288811/app.go#L72-L92
@@ -1227,11 +1227,14 @@ type BaseApp struct { // nolint: maligned
 	// flag for sealing options and parameters to a BaseApp
 	sealed bool
 
-	// block height at which to halt the chain and gracefully shutdown
+    // block height at which to halt the chain and gracefully shutdown
+    // 设置挂掉的高度
 	haltHeight uint64
 
-	// minimum block time (in Unix seconds) at which to halt the chain and gracefully shutdown
-	haltTime uint64
+    // minimum block time (in Unix seconds) at which to halt the chain and gracefully shutdown
+    // 设置挂掉的时间
+    haltTime uint64
+
 
 	// application's version string
 	appVersion string

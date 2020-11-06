@@ -5,13 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "debug-cli",
+            "name": "cli",
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "/home/yqq/BlockchainNotesV2/cosmos-sdk/nameservice/cmd/nameservicecli/main.go",
+            "program": "${workspaceRoot}/cmd/nameservicecli/",
             "env": {},
-            "args": ["rest-server"]
+            // "args": ["rest-server"]
+            //  nameservicecli tx send $(nameservicecli keys show user1 -a)  cosmos1nwpvwwyvygwsxswdvylgtq7s6mfpd52pks3d2s 10token
+            "args": ["tx","send","user1","cosmos1nwpvwwyvygwsxswdvylgtq7s6mfpd52pks3d2s","10token", "--home=/home/yqq/.nameservicecli" ,"-y"],
+        },
+        {
+            "name": "daemon",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceRoot}/cmd/nameserviced/",
+            "env": {},
+            "args": ["start"]
         }
     ]
 }

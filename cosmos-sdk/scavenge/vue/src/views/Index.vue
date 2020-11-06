@@ -5,7 +5,8 @@
       <sp-bank-balances />
       <sp-token-send />
       <!-- this line is used by starport scaffolding # 4 -->
-		<sp-type-form type="commit" :fields="['solutionHash', 'solutionScavengerHash']" module="scavenge" />
+		<sp-type-form type="commit" :fields="['solutionHash', 'solutionScavengerHash']" module="scavenge"  />
+
 		<sp-type-form type="reveal" :fields="['solution']" module="scavenge" />
 		<sp-type-form type="scavenge" :fields="['description',  'reward', 'solution' ]" module="scavenge" />
     </div>
@@ -17,5 +18,6 @@ import * as sp from "@tendermint/vue";
 
 export default {
   components: { ...sp },
+
 };
 </script>

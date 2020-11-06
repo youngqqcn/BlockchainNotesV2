@@ -217,6 +217,11 @@ func (app *MyTokenApp) release(owner, receiver crypto.Address, value int64) (boo
 
 func (app *MyTokenApp) transfer(fromAddress, toAddress crypto.Address, value int64) (bool, error) {
 
+	//// 为了测试appHash不匹配
+	//if value == 3571113 {
+	//	value += 1
+	//}
+
 	app.logger.Info("transfer ", fromAddress, " , ", toAddress, " , ", value)
 	fmt.Println("transfer ", fromAddress, " , ", toAddress, " , ", value)
 

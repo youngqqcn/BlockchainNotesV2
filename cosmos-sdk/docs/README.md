@@ -1,47 +1,4 @@
-<!--
-layout: homepage
-title: Cosmos SDK Documentation
-description: Cosmos SDK is the world’s most popular framework for building application-specific blockchains.
-sections:
-  - title: Introduction
-    desc: High-level overview of the Cosmos SDK.
-    url: /intro/overview.html
-    icon: introduction
-  - title: Basics
-    desc: Anatomy of a blockchain, transaction lifecycle, accounts and more.
-    icon: basics
-    url: /basics/app-anatomy.html
-  - title: Core Concepts
-    desc: Read about the core concepts like `baseapp`, the store, or the server.
-    icon: core
-    url: /core/baseapp.html
-  - title: Building Modules
-    desc: Discover how to build modules for the Cosmos SDK.
-    icon: modules
-    url: /building-modules/intro.html
-  - title: Interfaces
-    desc: Build interfaces for Cosmos SDK applications.
-    icon: interfaces
-    url: /interfaces/interfaces-intro.html
-  - title: Modules
-    desc: Explore existing modules to build your application with.
-    icon: specifications
-    url: /modules/
-stack:
-  - title: Cosmos Hub
-    desc: The first of thousands of interconnected blockchains on the Cosmos Network.
-    color: "#BA3FD9"
-    label: hub
-    url: http://hub.cosmos.network
-  - title: Tendermint Core
-    desc: The leading BFT engine for building blockchains, powering Cosmos SDK.
-    color: "#00BB00"
-    label: core
-    url: http://docs.tendermint.com
-footer:
-  newsletter: false
-aside: false
--->
+
 
 # Cosmos SDK Documentation
 

@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-var cli, _ = http.New("http://127.0.0.1:47657", "/websocket")
+var cli, _ = http.New("http://127.0.0.1:26657", "/websocket")
 
 var subcmd string
 var rootCmd = &cobra.Command{
